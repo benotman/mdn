@@ -1,0 +1,90 @@
+<?php
+/**
+ * @file
+ * A block module that displays the multi diagram navigation widget.
+ 
+ /**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param path
+ *   Which path of the site we're using to display help
+ * @param arg
+ *   Array that holds the current path as returned from arg() function
+ */
+function mdn_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#mdn":
+      return '<p>' . t("Widget to show diagrams") . '</p>';
+      break;
+  }
+} 
+
+/**
+ * Implements hook_block_info().
+ */
+function mdn_block_info() {
+  $blocks['mdn'] = array(
+    // The name that will appear in the block list.
+    'info' => t('mdn'),
+    // Default setting.
+    'cache' => DRUPAL_CACHE_PER_ROLE,
+  );
+  return $blocks;
+}
+
+function mdn_block_view($delta = '') {
+  switch ($delta) {
+    case 'mdn':
+      $block['subject'] = t('mdn');
+      if (user_access('access content')) {
+       $block['content'] = usergraph_usergraph(); //"<div id='mdn'><p>Test block</p></div>";
+   }
+    return $block;
+}
+}
+
+function usergraph_usergraph() {
+ // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery-1.11.1.min.js');
+ // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery.contextMenu.js');
+ // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery.ui.position.js');
+ // drupal_add_css(drupal_get_path('module', 'mdn') . '/jquery.contextMenu.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
+ 
+  // include our custom Raphael extension
+ // drupal_add_js(drupal_get_path('module', 'mdn') . '/js/raphael.bar.js');
+ 
+  // include our Drupal behaviors
+ // drupal_add_js(drupal_get_path('module', 'mdn') . '/js/mdn.js');
+ 
+  $graph_data = array(
+    'hello' => array(
+      'current' => 4,
+      'total' => 7
+    )
+  );
+ 
+  drupal_add_js($graph_data, 'setting');
+ 
+  // return the HTML necessary to attach the graph
+  //return theme('mdn');
+  return  "<div id='mdn'><p>hello</p></div>";
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+/*
+ function mdn_theme($existing, $type, $theme, $path) {
+  return array(
+    'mdn' => array(
+      'variables' => array(),
+    ),
+  ); // not sure if variables is correct or not, need to read about theming
+}
+
+
+function theme_mdn() {
+  return "<div id='mdn'><noscript>Enable JavaScript to see this awesome graph.</noscript></div>";
+}
+*/
