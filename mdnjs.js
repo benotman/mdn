@@ -48,21 +48,7 @@
 		   //arr[i].addEventListener("mouseout", sendClickToParentDocument2, false);
 		}
 		
-/*
-		function sendClickToParentDocument(evt)
-		{
-			// SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
-			var target = evt.currentTarget;
-			if(target.correspondingUseElement)
-				target = target.correspondingUseElement;
-      
-      // call a method in the parent document if it exists
-            if (window.parent.svgElementClicked)
-				window.parent.svgElementClicked(target,"AGView");
-			else
-				alert("You clicked '" + target.id + "' which is a " + target.nodeName + " element");
-		}
-	*/	
+
 		function sendMouseOverToParentDocument(evt)
 		{
 			// SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
