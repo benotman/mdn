@@ -55,7 +55,7 @@ function usergraph_usergraph() {
  // drupal_add_js(drupal_get_path('module', 'mdn') . '/js/raphael.bar.js');
  
   // include our Drupal behaviors
- // drupal_add_js(drupal_get_path('module', 'mdn') . '/js/mdn.js');
+ drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
  
   $graph_data = array(
     'hello' => array(
@@ -68,7 +68,7 @@ function usergraph_usergraph() {
  
   // return the HTML necessary to attach the graph
   //return theme('mdn');
-   $file = file_load(1);
+   $file = file_load(2);
   $contents = file_get_contents($file->uri);
   
   //return  "<div id='mdn'><p>hello</p></div>";
