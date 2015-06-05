@@ -1,4 +1,4 @@
-(function ($) {
+//(function ($) {
 	
 	var rect = {
    'hoverfill': "rgba(235,131,22,1)",
@@ -25,7 +25,41 @@
    'none3stroke': "rgba(134,192,235,1)",
    'none3stroke_width': "0.566px"
    };
-      
+   
+   function svgElementClicked(theElement, viewid){
+	   console.log("clicked");
+	   
+   }
+   	   
+   function svgElementMouseOver(theElement, viewid)
+			{
+				 if(viewid==="TreeView"){
+						//objfillColor= $("#" + theElement.id).css("fill"); 
+					    //objstrokeColor= $("#" + theElement.id).css("stroke"); 
+					    //objopacity=$("#" + theElement.id).css("opacity"); 
+						
+						//$("#" + theElement.id).css("fill",ellipse.hoverfill).css("stroke",ellipse.hoverstroke)
+						  //                    .css("stroke-width",ellipse.hoverstroke_width).css("opacity","1");
+						
+					}
+					else{
+					
+					var item2 =jQuery("#" + theElement.id).find('ellipse, rect, path')[0];
+				        var item = jQuery(item2);
+				//		objfillColor= item.css("fill"); 
+					//    objstrokeColor= item.css("stroke"); 
+			        	jQuery("#" + theElement.id).find('ellipse, rect, path').css("fill",rect.hoverfill)
+						                                                  .css("stroke",rect.hoverstroke)
+																		  .css("stroke-width",rect.hoverstroke_width);
+
+						//related("AGView",theElement.id,"hoverhighlight");
+
+						}
+
+						
+
+			}
+/*   
    function svgElementMouseOver(theElement, viewid)
 	{
 	 if(viewid==="TreeView"){
@@ -60,4 +94,6 @@
           svgElementMouseOver(target,"AGView");
 			
 		}
-})(jQuery);
+		*/
+		
+//})(jQuery);

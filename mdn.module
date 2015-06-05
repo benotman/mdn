@@ -68,7 +68,7 @@ function usergraph_usergraph() {
  
   // return the HTML necessary to attach the graph
   //return theme('mdn');
-   $file = file_load(2);
+   $file = file_load(5);
   $contents = file_get_contents($file->uri);
   
   //return  "<div id='mdn'><p>hello</p></div>";
