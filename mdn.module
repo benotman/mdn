@@ -68,11 +68,20 @@ function usergraph_usergraph() {
  
   // return the HTML necessary to attach the graph
   //return theme('mdn');
-   $file = file_load(5);
+   $file = file_load(6);
   $contents = file_get_contents($file->uri);
+  $pos = strrpos($contents, '</svg', -1);
+  if ($pos === false){
+	return  $contents;  
+  }
+  else{
+	$svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs.js'); 
+    $contents2 = substr_replace($contents, $svg_js, $pos, 0);  	 
+	return  $contents2;
+  }
   
   //return  "<div id='mdn'><p>hello</p></div>";
-  return  $contents;
+  
 }
 
 /**
