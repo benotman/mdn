@@ -18,6 +18,9 @@ function mdn_help($path, $arg) {
     case "admin/help#mdn":
       return '<p>' . t("Widget to show diagrams") . '</p>';
       break;
+    case "admin/help#mdnNodeViewer":
+      return '<p>' . t("A block to display related node(s) to selected elements (shapes) in the MDN diagrams") . '</p>';
+      break;	  
   }
 } 
 
@@ -31,6 +34,12 @@ function mdn_block_info() {
     // Default setting.
     'cache' => DRUPAL_CACHE_PER_ROLE,
   );
+    $blocks['mdnNodeViewer'] = array(
+    // The name that will appear in the block list.
+    'info' => t('mdnNodeViewer'),
+    // Default setting.
+    'cache' => DRUPAL_CACHE_PER_ROLE,
+  );
   return $blocks;
 }
 
@@ -40,9 +49,17 @@ function mdn_block_view($delta = '') {
       $block['subject'] = t('mdn');
       if (user_access('access content')) {
        $block['content'] = usergraph_usergraph(); //"<div id='mdn'><p>Test block</p></div>";
-   }
-    return $block;
-}
+      }
+      break;
+	  
+    case 'mdnNodeViewer':
+      $block['subject'] = t('mdn Node Viewer');
+      if (user_access('access content')) {
+       $block['content'] = "<div id='mdnNodeViewer'><p>default node will be displayed</p></div>"; //"<div id='mdn'><p>Test block</p></div>";
+	  }
+	  break;
+ }
+ return $block;
 }
 
 function usergraph_usergraph() {
