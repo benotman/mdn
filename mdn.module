@@ -104,16 +104,28 @@ function mdn_menu() {
     'page arguments' => array(3),
 	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
+	 'delivery callback' => 'mdn_magic', 
   );
   return $items;
 }
 
 function mdn_get_node($nid) {
-  //$node = node_load($nid);
-  //return node_view($node, 'teaser');
-  return "<p>new stuff</p>";
+  $node = node_load($nid);
+  return node_view($node, 'teaser');
+  //return "<p>new stuff</p>";
 }
 
+function mdn_magic($page_callback_result) {
+  // Only render content
+  $content = drupal_render($page_callback_result);
+
+  // Add CSS ans JS files, add some markup
+  //$html = '<html><head><title></title>' . drupal_get_css() . drupal_get_js() . '</head><body class="jquery-ajax-load">' . $content . '</body></html>';
+  print $content;
+
+  // Perform end-of-request tasks.
+  //drupal_page_footer();
+}
 /**
  * Implementation of hook_theme().
  */
