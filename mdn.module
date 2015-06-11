@@ -102,7 +102,7 @@ function usergraph_usergraph() {
 }
 
 function mdn_menu() {
-  $items['/node/get/ajax'] = array(
+  $items['node/get/ajax'] = array(
     'page callback' => 'mdn_get_node',
     'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
