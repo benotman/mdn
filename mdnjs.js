@@ -27,7 +27,7 @@
    };
    
    function svgElementClicked(theElement, viewid){
-	   console.log("clicked");
+	   jQuery("#mdnNodeViewer").load("/node/get/ajax/1");
 	   
    }
    	   
