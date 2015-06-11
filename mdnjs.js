@@ -27,7 +27,7 @@
    };
    
    function svgElementClicked(theElement, viewid){
-	   jQuery("#mdnNodeViewer").load("/mdn/get/ajax/1");
+	   jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/1");
    }
    	   
    function svgElementMouseOver(theElement, viewid)
