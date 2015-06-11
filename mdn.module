@@ -18,9 +18,6 @@ function mdn_help($path, $arg) {
     case "admin/help#mdn":
       return '<p>' . t("Widget to show diagrams") . '</p>';
       break;
-    case "admin/help#mdnNodeViewer":
-      return '<p>' . t("A block to display related node(s) to selected elements (shapes) in the MDN diagrams") . '</p>';
-      break;	  
   }
 } 
 
