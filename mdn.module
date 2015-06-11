@@ -104,15 +104,17 @@ function usergraph_usergraph() {
 function mdn_menu() {
   $items['mdn/get/ajax'] = array(
     'page callback' => 'mdn_get_node',
-    'type' => MENU_CALLBACK,
+    'page arguments' => array(3),
+	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
   );
   return $items;
 }
 
 function mdn_get_node($nid) {
-  $node = node_load($nid);
-  return node_view($node, 'teaser');
+  //$node = node_load($nid);
+  //return node_view($node, 'teaser');
+  return "<p>new stuff</p>";
 }
 
 /**
