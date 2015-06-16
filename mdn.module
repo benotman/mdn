@@ -82,9 +82,38 @@ function usergraph_usergraph() {
  
   // return the HTML necessary to attach the graph
   //return theme('mdn');
+  /*
+     Check the default layout (one, two, three, or four diagrams) (two for now)
+	 Retrieve the required # of default SVGs (SVG markup in DOM and SVG record in the database)
+	 iterate over default SVGs (the first few)
+	    if SVG_hide_elements = true // SVG elements are on top of image 
+		   change css to hide elements
+		else
+           nothing
+        
+     		
+	 embed the default SVGs in the main mdn html 
+	    two divs for now 
+		required buttons
+	    load any required CSS (maybe for diagram browser)
+	 
+	-----------------------
+    I need following configuration info.
+	- default layout
+	
+	For every SVG
+	- default SVG true/false 
+	- hide elements true/false 
+    - highlight color
+    - select color
+    - hover color	
+  */
+  
+  
    $file = file_load(6);
   $contents = file_get_contents($file->uri);
   $pos = strrpos($contents, '</svg', -1);
+  
   if ($pos === false){
 	return  $contents;  
   }
