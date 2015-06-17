@@ -45,7 +45,7 @@ function mdn_block_view($delta = '') {
     case 'mdn':
       $block['subject'] = t('mdn');
       if (user_access('access content')) {
-       $block['content'] = usergraph_usergraph(); //"<div id='mdn'><p>Test block</p></div>";
+       $block['content'] = get_mdn(); //"<div id='mdn'><p>Test block</p></div>";
       }
       break;
 	  
@@ -59,7 +59,7 @@ function mdn_block_view($delta = '') {
  return $block;
 }
 
-function usergraph_usergraph() {
+function get_mdn() {
  // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery-1.11.1.min.js');
  // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery.contextMenu.js');
  // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery.ui.position.js');
@@ -80,8 +80,6 @@ function usergraph_usergraph() {
  
   drupal_add_js($graph_data, 'setting');
  
-  // return the HTML necessary to attach the graph
-  //return theme('mdn');
   /*
      Check the default layout (one, two, three, or four diagrams) (two for now)
 	 Retrieve the required # of default SVGs (SVG markup in DOM and SVG record in the database)
@@ -110,19 +108,33 @@ function usergraph_usergraph() {
   */
   
   
-   $file = file_load(6);
+  $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs.js'); 
+  
+  $file = file_load(6);
   $contents = file_get_contents($file->uri);
   $pos = strrpos($contents, '</svg', -1);
-  
+    
   if ($pos === false){
-	return  $contents;  
-  }
+	$contents2 = "SVG file is not valid. Please make sure to load diagrams in SVG format";
+	}
   else{
-	$svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs.js'); 
     $contents2 = substr_replace($contents, $svg_js, $pos, 0);  	 
-	return  $contents2;
   }
-  
+
+  $file = file_load(8);
+  $contents = file_get_contents($file->uri);
+  $pos = strrpos($contents, '</svg', -1);
+    
+  if ($pos === false){
+	$contents2 = $contents2 . '<br>' . "SVG file is not valid. Please make sure to load diagrams in SVG format";
+	}
+  else{
+    $contents3 = substr_replace($contents, $svg_js, $pos, 0);
+    $contents2 = $contents2 . '<br>' . $contents3;	
+  }
+   
+
+	return  $contents2;  
   //return  "<div id='mdn'><p>hello</p></div>";
   
 }
