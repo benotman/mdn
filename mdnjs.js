@@ -28,6 +28,14 @@
    
    function svgElementClicked(theElement, viewid){
 	   jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/1");
+	   //winodw.open("?q=mdn/get/ajax/1");
+	   
+	   /*
+	      DB Schema(ViewID,itemID,ViewID,ItemID)
+		  ViewID=0 --> Content nodes
+		  Retrieve connections from DB
+		  
+	   */
    }
    	   
    function svgElementMouseOver(theElement, viewid)

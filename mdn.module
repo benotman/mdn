@@ -131,8 +131,14 @@ function get_mdn() {
   else{
     $contents3 = substr_replace($contents, $svg_js, $pos, 0);
     $contents2 = $contents2 . '<br>' . $contents3;	
-  }
+    }
    
+   /*
+   Possible design 
+   2 divs one over the other and a space for buttons
+   zoom button will be in the svg
+   
+   */
 
 	return  $contents2;  
   //return  "<div id='mdn'><p>hello</p></div>";
