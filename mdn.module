@@ -110,7 +110,7 @@ function get_mdn() {
   
   $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs.js'); 
   
-  $file = file_load(6);
+  $file = file_load(9);
   $contents = file_get_contents($file->uri);
   $pos = strrpos($contents, '</svg', -1);
     
