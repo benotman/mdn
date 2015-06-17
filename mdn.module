@@ -148,16 +148,16 @@ function get_mdn() {
 function mdn_menu() {
   $items['mdn/get/ajax'] = array(
     'page callback' => 'mdn_get_node',
-    'page arguments' => array(3),
 	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
 	 'delivery callback' => 'mdn_magic', 
   );
+  //'page arguments' => array(3),
   return $items;
 }
 
-function mdn_get_node($nid) {
-  $node = node_load($nid);
+function mdn_get_node($viewId, $elementId) {
+  $node = node_load(1);
   return node_view($node, 'teaser');
   //return "<p>new stuff</p>";
 }

@@ -27,17 +27,24 @@
    };
    
    function svgElementClicked(theElement, viewid){
-	   jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/1");
+	   //jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/1");
 	   //winodw.open("?q=mdn/get/ajax/1");
 	   
 	   /*
 	      DB Schema(ViewID,itemID,ViewID,ItemID)
-		  ViewID=0 --> Content nodes
-		  Retrieve connections from DB
+		  ViewID=cnt1 --> Content nodes
 		  
-		  
+		  load a specific url
+		  hook_menu
+		    Retrieve connections from DB
+		    if one connection
+		       view node
+	        else
+               construct a list of links		  
 		  
 	   */
+	   jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
+	   
    }
    	   
    function svgElementMouseOver(theElement, viewid)
