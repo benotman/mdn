@@ -26,8 +26,8 @@
         // call a method in the parent document if it exists
         if (parent.svgElementClicked)
 			parent.svgElementClicked(target, thisSVGid);
-		else
-			alert("Error: Function svgElementClicked does not exist");
+		//else
+		//	alert("Error: Function svgElementClicked does not exist");
 	}
 		
 	function sendMouseOverToParentDocument(evt)
@@ -40,8 +40,8 @@
       // call a method in the parent document if it exists
       if (window.parent.svgElementMouseOver)
 		  window.parent.svgElementMouseOver(target,thisSVGid);
-	  else
-		  alert("Error: Function svgElementMouseOver does not exist");
+	  //else
+		//  alert("Error: Function svgElementMouseOver does not exist");
 	}
 
 	function sendMouseOutToParentDocument(evt)
@@ -54,7 +54,7 @@
       // call a method in the parent document if it exists
       if (window.parent.svgElementMouseOut)
 		  window.parent.svgElementMouseOut(target,thisSVGid);
-	  else
-		  alert("Error: Function svgElementMouseOut does not exist");
+	//  else
+		//  alert("Error: Function svgElementMouseOut does not exist");
 	}	
 </script>
