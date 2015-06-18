@@ -166,11 +166,29 @@ function mdn_get_node($viewId, $elementId) {
         create a list with node title and a link		 
   */
   
+  $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element) or (view2 = :view and element2 = :element)", 
+   array(':view' => $viewId, ':element' => $elementId));
+   
+  $list ="<ul>"; 
+  $count=0;
+  foreach ($result as $record) {
+      //$node = node_load($record->nid);
+	  $list = $list . "<li>" . $record->view2 . "</li>"; 
+	  $count = $count +1;
+  }
+  if($count <= 0){
+	  $list =$list . "<li>No result found</li></ul>";
+  }
+  else{
+	  $list =$list . "</ul>";   
+  }
   
-  $node = node_load(1);
+  
+  //$node = node_load(1);
   //return node_view($node, 'teaser');
-  $content = drupal_render(node_view($node, 'teaser'));
-  return $content;
+  //$content = drupal_render(node_view($node, 'teaser'));
+  //  return $content;
+  return $list;
   //return "<p>" . $viewId . " " . $elementId . "</p>";
 }
 
