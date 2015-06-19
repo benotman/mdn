@@ -160,35 +160,48 @@ function mdn_menu() {
 function mdn_get_node($viewId, $elementId) {
   /*
      retrieve connections
+	 
 	 if one 
 	    node load as usual
 	 else
         create a list with node title and a link		 
   */
   
-  $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element) or (view2 = :view and element2 = :element)", 
+  $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element and view2='cnt1') or (view2 = :view and element2 = :element and view1='cnt1')", 
    array(':view' => $viewId, ':element' => $elementId));
    
-  $list ="<ul>"; 
+  $content ="<ul>"; 
   $count=0;
+  $firstNid="";
+  $elem="";
+  
   foreach ($result as $record) {
-      //$node = node_load($record->nid);
-	  $list = $list . "<li>" . $record->view2 . "</li>"; 
+	  if($viewId === $record->view1 && $elementId === $record->element1){
+	     $elem = $record->element2;
+	  }	 
+	  else{
+	     $elem = $record->element1;   
+	  }
+	  
+	  $content = $content . "<li>" . $elem . "</li>";
 	  $count = $count +1;
+	  if($count == 1) 
+	     {$firstNid= $elem;}
   }
+  
   if($count <= 0){
-	  $list =$list . "<li>No result found</li></ul>";
+	  $content = $content . "<li>No result found</li></ul>";
+  }
+  else if($count == 1){
+      $node = node_load((int) $firstNid);
+	  $content = drupal_render(node_view($node, 'teaser'));
   }
   else{
-	  $list =$list . "</ul>";   
+	  $content =$content . "</ul>";   
   }
   
+  return $content;
   
-  //$node = node_load(1);
-  //return node_view($node, 'teaser');
-  //$content = drupal_render(node_view($node, 'teaser'));
-  //  return $content;
-  return $list;
   //return "<p>" . $viewId . " " . $elementId . "</p>";
 }
 
