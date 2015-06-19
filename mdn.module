@@ -150,8 +150,8 @@ function mdn_menu() {
     'page callback' => 'mdn_get_node',
 	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
-	'delivery callback' => 'mdn_magic', 
   );
+  //'delivery callback' => 'mdn_magic', 
   //'page arguments' => array(3),
   
   return $items;
@@ -194,7 +194,8 @@ function mdn_get_node($viewId, $elementId) {
   }
   else if($count == 1){
       $node = node_load((int) $firstNid);
-	  $content = drupal_render(node_view($node, 'teaser'));
+	  $cnt = node_view($node, 'teaser');
+	  $content = drupal_render($cnt);
   }
   else{
 	  $content =$content . "</ul>";   
