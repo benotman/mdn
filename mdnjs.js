@@ -87,8 +87,8 @@
 			
 	function hoverCallback(response){
 		 var result = jQuery.parseJSON(response);
-		 //console.log(result.elementId);
-		 console.log(response);
+		 console.log(result[0].elementId);
+		 //console.log(response);
 	}		
 /*   
    function svgElementMouseOver(theElement, viewid)
