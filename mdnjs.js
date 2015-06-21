@@ -54,6 +54,8 @@
 				  retrieve ids for related visual elements
 				  highlight related elements
 				*/
+				 jQuery.get("?q=mdn/hover/" + viewid + "/" + theElement.id, null, hoverCallback);
+				
 				
 				/*
 				 if(viewid==="TreeView"){
@@ -82,6 +84,12 @@
 					*/	
 
 			}
+			
+	function hoverCallback(response){
+		 var result = jQuery.parseJSON(response);
+		 //console.log(result.elementId);
+		 console.log(response);
+	}		
 /*   
    function svgElementMouseOver(theElement, viewid)
 	{

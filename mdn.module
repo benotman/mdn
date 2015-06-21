@@ -153,8 +153,36 @@ function mdn_menu() {
   );
   //'delivery callback' => 'mdn_magic', 
   //'page arguments' => array(3),
+  $items['mdn/hover'] = array(
+    'page callback' => 'mdn_hover',
+	'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
   
   return $items;
+}
+
+function mdn_hover($viewId, $elementId){
+   $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element and view2 != 'cnt1') or (view2 = :view and element2 = :element and view1 != 'cnt1')", 
+   array(':view' => $viewId, ':element' => $elementId));
+   
+    $count=0;   
+	$arr=array();
+    foreach ($result as $record) {
+	  if($viewId === $record->view1 && $elementId === $record->element1){
+	     $elem = $record->element2;
+		 $view = $record->view2;
+	  }	 
+	  else{
+	     $elem = $record->element1;   
+		 $view = $record->view1;
+	  }
+	$arr[$count]= array('viewId' => $view, 'elementId' => $elem);
+    $count++;	 
+	}
+    	
+   $jsonstring = drupal_json_encode($arr);
+   drupal_json_output($jsonstring);
 }
 
 function mdn_get_node($viewId, $elementId) {
