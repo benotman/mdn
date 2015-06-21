@@ -181,7 +181,7 @@ function mdn_hover($viewId, $elementId){
     $count++;	 
 	}
     	
-   $jsonstring = drupal_json_encode($arr);
+   $jsonstring = drupal_json_encode($count);
    drupal_json_output($jsonstring);
 }
 

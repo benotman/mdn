@@ -54,8 +54,8 @@
 				  retrieve ids for related visual elements
 				  highlight related elements
 				*/
-				 jQuery.get("?q=mdn/hover/" + viewid + "/" + theElement.id, null, hoverCallback);
-				
+				 //jQuery.get("?q=mdn/hover/" + viewid + "/" + theElement.id, null, hoverCallback);
+				jQuery.get("?q=mdn/hover/" + "svg1" + "/" + "b31", null, hoverCallback);
 				
 				/*
 				 if(viewid==="TreeView"){
