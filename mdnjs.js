@@ -50,6 +50,12 @@
    	   
    function svgElementMouseOver(theElement, viewid)
 			{
+				/*
+				  retrieve ids for related visual elements
+				  highlight related elements
+				*/
+				
+				/*
 				 if(viewid==="TreeView"){
 						//objfillColor= $("#" + theElement.id).css("fill"); 
 					    //objstrokeColor= $("#" + theElement.id).css("stroke"); 
@@ -73,7 +79,7 @@
 
 						}
 
-						
+					*/	
 
 			}
 /*   
