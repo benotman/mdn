@@ -53,6 +53,10 @@
 				/*
 				  retrieve ids for related visual elements
 				  highlight related elements
+				  - change attack graph to text boxes
+				  
+                 Loading SVGs
+                 				 
 				*/
 				 //jQuery.get("?q=mdn/hover/" + viewid + "/" + theElement.id, null, hoverCallback);
 				jQuery.get("?q=mdn/hover/" + "svg1" + "/" + "b31", null, hoverCallback);
@@ -88,7 +92,7 @@
 	function hoverCallback(response){
 		 var result = jQuery.parseJSON(response);
 		 console.log(result[0].elementId);
-		 //console.log(response);
+		
 	}		
 /*   
    function svgElementMouseOver(theElement, viewid)
