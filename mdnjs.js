@@ -44,7 +44,9 @@
 		  
 	   */
 	   //jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
-	   window.open("?q=mdn/get/ajax/" + viewid + "/" + theElement.id, "_self");
+	   jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
+	   //window.open("?q=mdn/get/ajax/" + viewid + "/" + theElement.id, "_self");
+	 // window.open("?q=ajaxreader/ajax/5", "_self"); // + viewid + "/" + theElement.id, "_self"
 	  // window.open("?q=node/5","_self");
    }
    	   

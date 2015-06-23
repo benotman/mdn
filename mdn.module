@@ -139,10 +139,15 @@ function get_mdn() {
    zoom button will be in the svg
    
    */
-
+    $contents2 = $contents2 . '<br><a href="?q=ajaxreader/nojs/5" class="use-ajax"></a>';
 	return  $contents2;  
   //return  "<div id='mdn'><p>hello</p></div>";
   
+}
+
+function mdn_init() {
+  drupal_add_js('misc/jquery.form.js');
+  drupal_add_library('system', 'drupal.ajax');
 }
 
 function mdn_menu() {
@@ -150,9 +155,18 @@ function mdn_menu() {
     'page callback' => 'mdn_get_node',
 	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
+	'delivery callback' => 'mdn_magic', 
   );
-  //'delivery callback' => 'mdn_magic', 
+  
   //'page arguments' => array(3),
+  
+  $items['ajaxreader'] = array(
+    'page callback' => 'ajax_link_response',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  
   $items['mdn/hover'] = array(
     'page callback' => 'mdn_hover',
 	'type' => MENU_CALLBACK,
@@ -160,6 +174,32 @@ function mdn_menu() {
   );
   
   return $items;
+}
+
+function ajax_link_response($type = 'ajax', $nid = 0) {
+  $output = ajax_reader_load_noder($nid);
+  if ($type == 'ajax') {
+    $commands = array();
+    $commands[] = ajax_command_replace('#content', '<div id="content">' . $output . '</div>');
+    $page = array(
+      '#type' => 'ajax',
+      '#commands' => $commands
+    );
+    ajax_deliver($page);
+  }
+  else {
+    $output = '<div id="content">' . $output . '</div>';
+    return $output;
+  }
+}
+
+function ajax_reader_load_noder($nid = 0) {
+  $node = node_load($nid);
+  if ($node) {
+    $vnode = node_view($node);
+    return theme("node", $vnode);
+  }
+ // return views_embed_view ('front','page_1', $nid);
 }
 
 function mdn_hover($viewId, $elementId){
@@ -241,6 +281,7 @@ function mdn_get_node($viewId, $elementId) {
       $node = node_load((int) $firstNid);
 	  $cnt = node_view($node, 'teaser');
 	  $content = drupal_render($cnt);
+	  
   }
   else{
 	  //$content =$content . "</ul>";   
@@ -253,6 +294,14 @@ function mdn_get_node($viewId, $elementId) {
   }
   
   return $content;
+  
+ //   $commands = array();
+   // $commands[] = ajax_command_replace('#content', '<div id="content">' . $content . '</div>');
+   // $page = array(
+    //  '#type' => 'ajax',
+     // '#commands' => $commands
+    //);
+    //ajax_deliver($page);
   
   //return "<p>" . $viewId . " " . $elementId . "</p>";
 }
