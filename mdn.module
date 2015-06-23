@@ -145,10 +145,13 @@ function get_mdn() {
   
 }
 
+
 function mdn_init() {
   drupal_add_js('misc/jquery.form.js');
   drupal_add_library('system', 'drupal.ajax');
 }
+
+
 
 function mdn_menu() {
   $items['mdn/get/ajax'] = array(
@@ -165,7 +168,7 @@ function mdn_menu() {
     'access callback' => 'user_access',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
-  );
+  ); 
   
   $items['mdn/hover'] = array(
     'page callback' => 'mdn_hover',
@@ -201,6 +204,7 @@ function ajax_reader_load_noder($nid = 0) {
   }
  // return views_embed_view ('front','page_1', $nid);
 }
+
 
 function mdn_hover($viewId, $elementId){
    $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element and view2 != 'cnt1') or (view2 = :view and element2 = :element and view1 != 'cnt1')", 
@@ -263,7 +267,11 @@ function mdn_get_node($viewId, $elementId) {
 	  if($nodeRec){
 		 //$content = $content . "<li>" . $nodeRec->title . "</li>";  
 		// $links = array('item1' => array( 'title' => $nodeRec->title, 'href' => '?q=node/' . $nodeRec->nid ));
-		$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => '?q=node/' . $nodeRec->nid);
+		//$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => '?q=node/' . $nodeRec->nid);
+		$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => '?q=ajaxreader/nojs/' . $nodeRec->nid, 'attributes' => array('class' => 'use-ajax'));
+		//$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'jQuery("#content").load("?q=mdn/get/ajax/svg1/b7');
+		//jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
+		
 	  }
 	//  else{
 		  // delete this connection
@@ -281,7 +289,6 @@ function mdn_get_node($viewId, $elementId) {
       $node = node_load((int) $firstNid);
 	  $cnt = node_view($node, 'teaser');
 	  $content = drupal_render($cnt);
-	  
   }
   else{
 	  //$content =$content . "</ul>";   
