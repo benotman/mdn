@@ -1,21 +1,35 @@
 <script>
 	var thisSVGid;
-	var arr2 = document.getElementsByTagName("svg");
+	/* var arr2 = document.getElementsByTagName("svg");
 	if(arr2.length <= 0){
 		thisSVGid="Unknown";
 		alert("SVG root element cannot be found");
 	}
 	else{
 		thisSVGid = arr2[0].getAttribute("id"); //EH
-	}
+	}*/
 	
-	var arr = document.getElementsByTagName("g");
+   var scriptTag = document.getElementsByTagName('script');
+   scriptTag = scriptTag[scriptTag.length - 1];
+   var parentTag = scriptTag.parentNode;
+   thisSVGid = parentTag.getAttribute("id");
+   
+   console.log(thisSVGid);
+	
+	var arr = document.getElementsByTagName("path");
 	for (var i = 0; i < arr.length; i++) { 
 	   arr[i].addEventListener("click", sendClickToParentDocument, false);
 	   arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
 	   arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
 	}
-		
+
+	arr = document.getElementsByTagName("ellipse");
+	for (var i = 0; i < arr.length; i++) { 
+	   arr[i].addEventListener("click", sendClickToParentDocument, false);
+	   arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
+	   arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
+	}
+	
 	function sendClickToParentDocument(evt)
 	{
 	   // SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
