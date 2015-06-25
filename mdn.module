@@ -82,15 +82,17 @@ function get_mdn() {
  
   /*
      Check the default layout (one, two, three, or four diagrams) (two for now)
-	 Retrieve the required # of default SVGs (SVG markup in DOM and SVG record in the database)
+	 Retrieve the required # of default SVGs (top 1,2,3, or 4) (SVG markup in DOM and SVG record in the database)
 	 iterate over default SVGs (the first few)
-	    if SVG_hide_elements = true // SVG elements are on top of image 
-		   change css to hide elements
-		else
-           nothing
-        
-     		
-	 embed the default SVGs in the main mdn html 
+	    if current svg is not curated before
+		   load, embed, change ids
+		   
+	       if SVG_hide_elements = true // SVG elements are on top of image 
+  		      change css to hide elements
+	     
+        content = content . current SVG
+		
+		embed the default SVGs in the main mdn html 
 	    two divs for now 
 		required buttons
 	    load any required CSS (maybe for diagram browser)
@@ -107,28 +109,50 @@ function get_mdn() {
     - hover color	
   */
   
-  
-  $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs.js'); 
-  
-  $file = file_load(11);
-  $contents = file_get_contents($file->uri);
-  $pos = strrpos($contents, '</svg', -1);
-  
-  
     
-  if ($pos === false){
-	$contents2 = "SVG file is not valid. Please make sure to load diagrams in SVG format";
-	}
-  else{
-    $contents2 = substr_replace($contents, $svg_js, $pos, 0);  	 
-  }
+   $default_layout = 2;
+   $svg_js='none';
+   //$diagrams = db_query("SELECT {file_managed}.fid,{file_managed}.uri FROM (({file_managed} inner join {file_usage} on {file_managed}.fid={file_usage}.fid) inner join {node} on {file_usage}.id = {node}.nid) where {node}.type = 'diagram'", 
+   $diagrams = db_query("SELECT t1.fid,t1.uri FROM (({file_managed} as t1 inner join {file_usage} as t2 on t1.fid=t2.fid) inner join {node} as t3 on t2.id = t3.nid) where t3.type = 'diagram'");
+   foreach ($diagrams as $record) {
+	  $temp = $record->uri;   
+	  
+   } 
+  
+  $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs2.js'); 
+  
+  $file = file_load(12);
+  $contents = file_get_contents($file->uri);
+  //$pos = strrpos($contents, '</svg', -1);
+
+  //if ($pos === false){
+	//$contents2 = "SVG file is not valid. Please make sure to load diagrams in SVG format";
+	//}
+  //else{
+    //$contents2 = substr_replace($contents, $svg_js, $pos, 0);  	 
+  //}
   $doc = new DOMDocument();
-  $doc->loadXML($contents2);
+  $doc->loadXML($contents);
+  
+  $node = $doc->createElement("script");
+  $node->nodeValue =  $svg_js;
+  $newnode = $doc->appendChild($node);
+  
+  $svgId = 'svg' . 3;
   $SVGs = $doc->getElementsByTagName('svg');
   foreach ($SVGs as $svg) {
-    $svg->setAttribute("id", "svg6");
+    $svg->setAttribute("id", $svgId);
   }
+  
+  $count =1;
+  $SVGs = $doc->getElementsByTagName('path');
+  foreach ($SVGs as $svg) {
+    $svg->setAttribute("id", $svgId . '_' . $count);
+	$count++;
+  }
+  
   $contents2 = $doc->saveXML();
+  file_put_contents($file->uri, $contents2);
   
   $file = file_load(8);
   $contents = file_get_contents($file->uri);
@@ -148,7 +172,8 @@ function get_mdn() {
    zoom button will be in the svg
    
    */
-    $contents2 = $contents2 . '<br><a href="?q=ajaxreader/nojs/5" class="use-ajax"> test link</a>';
+    //$contents2 = $contents2 . '<br><a href="?q=ajaxreader/nojs/5" class="use-ajax"> test link</a>';
+	$contents2 = $contents2 . '<br>' . $temp;
 	return  $contents2;  
   //return  "<div id='mdn'><p>hello</p></div>";
   

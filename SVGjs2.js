@@ -1,4 +1,3 @@
-<script>
 <![CDATA[
 	var thisSVGid;
 	/* var arr2 = document.getElementsByTagName("svg");
@@ -76,4 +75,3 @@
 		//  alert("Error: Function svgElementMouseOut does not exist");
 	}	
 	]]>
-</script>	
