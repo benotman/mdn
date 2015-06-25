@@ -1,4 +1,5 @@
 <script>
+<![CDATA[
 	var thisSVGid;
 	/* var arr2 = document.getElementsByTagName("svg");
 	if(arr2.length <= 0){
@@ -16,18 +17,21 @@
    
    console.log(thisSVGid);
 	
-	var arr = document.getElementsByTagName("path");
+	//var arr = document.getElementsByTagName("path");
+	var arr = parentTag.getElementsByTagName("path");
 	for (var i = 0; i < arr.length; i++) { 
 	   arr[i].addEventListener("click", sendClickToParentDocument, false);
 	   arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
 	   arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
+	   console.log(arr[i].getAttribute("id"));
 	}
 
-	arr = document.getElementsByTagName("ellipse");
+	arr = parentTag.getElementsByTagName("ellipse");
 	for (var i = 0; i < arr.length; i++) { 
 	   arr[i].addEventListener("click", sendClickToParentDocument, false);
 	   arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
 	   arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
+	   console.log(arr[i].getAttribute("id"));
 	}
 	
 	function sendClickToParentDocument(evt)
@@ -39,7 +43,7 @@
       
         // call a method in the parent document if it exists
         if (parent.svgElementClicked)
-			parent.svgElementClicked(target, thisSVGid);
+			parent.svgElementClicked(target, thisSVGid); // after finishing svg loader and identifier, I will have svg id embedded in each element id 
 		//else
 		//	alert("Error: Function svgElementClicked does not exist");
 	}
@@ -71,4 +75,5 @@
 	//  else
 		//  alert("Error: Function svgElementMouseOut does not exist");
 	}	
+	]]>
 </script>

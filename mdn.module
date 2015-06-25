@@ -113,6 +113,8 @@ function get_mdn() {
   $file = file_load(11);
   $contents = file_get_contents($file->uri);
   $pos = strrpos($contents, '</svg', -1);
+  
+  
     
   if ($pos === false){
 	$contents2 = "SVG file is not valid. Please make sure to load diagrams in SVG format";
@@ -120,7 +122,14 @@ function get_mdn() {
   else{
     $contents2 = substr_replace($contents, $svg_js, $pos, 0);  	 
   }
-
+  $doc = new DOMDocument();
+  $doc->loadXML($contents2);
+  $SVGs = $doc->getElementsByTagName('svg');
+  foreach ($SVGs as $svg) {
+    $svg->setAttribute("id", "svg6");
+  }
+  $contents2 = $doc->saveXML();
+  
   $file = file_load(8);
   $contents = file_get_contents($file->uri);
   $pos = strrpos($contents, '</svg', -1);
