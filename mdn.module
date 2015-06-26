@@ -110,17 +110,15 @@ function get_mdn() {
   */
   
     
-   $default_layout = 2;
+   $default_layout = 2; // default number of diagrams to display
    
-   $criteria = '1';
+   $criteria = '1';  //Retrieve diagrams that have the display_on_load attribute = 1
    $query = new EntityFieldQuery();
    $query->entityCondition('entity_type', 'node')
 	 ->entityCondition('bundle', 'diagram')                    
 	 ->fieldCondition('field_display_on_load', 'value', $criteria, '=');
 	// ->fieldOrderBy('field_display_on_load', 'entity_id', 'ASC'); check this to load the first few diagrams 
     
-   
-//   $entity_type = 'node';
    $result = $query->execute();
  //  if (!empty($result[$entity_type])) {
 	   //To be completed load only few diagrams (# in default display)
@@ -129,7 +127,7 @@ function get_mdn() {
 
    $counter=1;
    $resultHtml='';
-    $newContents='';
+   $newContents='';
    $nodes = entity_load('node', array_keys($result['node']));
   
    foreach ($nodes as $node) {
