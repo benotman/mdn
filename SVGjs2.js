@@ -1,4 +1,3 @@
-<![CDATA[
 	var thisSVGid;
 	/* var arr2 = document.getElementsByTagName("svg");
 	if(arr2.length <= 0){
@@ -74,4 +73,3 @@
 	//  else
 		//  alert("Error: Function svgElementMouseOut does not exist");
 	}	
-	]]>
