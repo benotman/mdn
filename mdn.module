@@ -62,23 +62,10 @@ function mdn_block_view($delta = '') {
 function get_mdn() {
  // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery-1.11.1.min.js');
  // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery.contextMenu.js');
- // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery.ui.position.js');
- // drupal_add_css(drupal_get_path('module', 'mdn') . '/jquery.contextMenu.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
  
-  // include our custom Raphael extension
- // drupal_add_js(drupal_get_path('module', 'mdn') . '/js/raphael.bar.js');
+  drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
  
-  // include our Drupal behaviors
- drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
- 
-  $graph_data = array(
-    'hello' => array(
-      'current' => 4,
-      'total' => 7
-    )
-  );
- 
-  drupal_add_js($graph_data, 'setting');
+  $diagram_data = array();
  
   /*
      Check the default layout (one, two, three, or four diagrams) (two for now)
@@ -120,50 +107,47 @@ function get_mdn() {
 	// ->fieldOrderBy('field_display_on_load', 'entity_id', 'ASC'); check this to load the first few diagrams 
     
    $result = $query->execute();
- //  if (!empty($result[$entity_type])) {
-	   //To be completed load only few diagrams (# in default display)
-	//   $entities = entity_load($entity_type, array_keys($result[$entity_type]));
-   //}
+   if (empty($result['node'])) {
+	   	return '<p>No diagrams found</p>';
+      // $entities = entity_load($entity_type, array_keys($result[$entity_type]));
+   }
 
    $counter=1;
    $resultHtml='';
    $newContents='';
    $nodes = entity_load('node', array_keys($result['node']));
-  
+
+  // $res = print_r($nodes, true);
+  // return $res;
+   
    foreach ($nodes as $node) {
       $fid = $node->field_svg_file[LANGUAGE_NONE][0]['fid'];
+	  //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
 	  $file = file_load($fid);
       $contents = file_get_contents($file->uri);
       $doc = new DOMDocument();
       $doc->loadXML($contents);
 
-      $searchNode = $doc->documentElement;
-	  //$nodelist = $doc->getElementsByTagName("svg");
+      $rootNode = $doc->documentElement;
 	  $prepared='';
 	  
-	  //$searchNode = new DOMNode();
-	  //foreach ($nodelist as $sNode){
-		//  $prepared = $sNode->getAttribute("prepared");
-		 // $searchNode;
-	  //}
-	  $resultHtml = $resultHtml . $prepared;
-	 // $resultHtml = $nodelist->length;
-	 // $searchNode = $nodelist->item(0);
-	  $prepared = $searchNode->getAttribute("prepared");
-
-	  if($prepared === ''){ // SVG file is loaded for the first time, MDN prepares svg file by assigning a unique id for the svg file and all elements
+	  $prepared = $rootNode->getAttribute("prepared");
+      $svgId = $rootNode->getAttribute("id");
+	  $rootNode->setAttribute("hide_elements",$node->field_hide_svg_elements[LANGUAGE_NONE][0]['value']); // try to use drupal_add_js settings instead
 	  
-		  $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs2.js'); 
+	  if($prepared === ''){ // SVG file is loaded for the first time, MDN prepares svg file by assigning unique ids for the svg file and all elements
+
+          $scriptNode = $doc->createElement("script");
+          $rootNode->appendChild($scriptNode);
+	      $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs2.js'); 
 	      $cdata = $doc->createCDATASection($svg_js);
-        //  $dom->appendChild($cdata);
-		  $scriptNode = $doc->createElement("script");
-          //$scriptNode->nodeValue =  $svg_js;
-          $newnode = $searchNode->appendChild($scriptNode);
-		  $newnode2 = $scriptNode->appendChild($cdata);
+		  $scriptNode->appendChild($cdata);
  		
-		  $svgId = 'svg' . $counter; // check if old svgs do not have this number
-          $searchNode->setAttribute("id", $svgId);
-		  $searchNode->setAttribute("prepared", 'yes');
+		  $uniqueId = get_unique_svg_number();
+		  $svgId = 'svg' . $uniqueId; 
+
+          $rootNode->setAttribute("id", $svgId);
+		  $rootNode->setAttribute("prepared", 'yes');
          
 		  $elem_count =1;
           $elems = $doc->getElementsByTagName('path');
@@ -181,17 +165,20 @@ function get_mdn() {
 		  $newContents = $doc->saveXML();
           file_put_contents($file->uri, $newContents);
       }
-	  else{
+	  else{ // svg file is prepared before
 		  $newContents = $doc->saveXML(); 
 	  }
 	  
      $resultHtml = $resultHtml . '<br>' . $newContents;
+	 $diagram_data[$svgId]['hide']= $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
 	 
 	 $counter++;
 	 if($counter > $default_layout)
 	    break;
    }
 
+   //drupal_add_js($diagram_data, 'setting');
+   
    return  $resultHtml;  
   // $svg_js='none';
    //$diagrams = db_query("SELECT {file_managed}.fid,{file_managed}.uri FROM (({file_managed} inner join {file_usage} on {file_managed}.fid={file_usage}.fid) inner join {node} on {file_usage}.id = {node}.nid) where {node}.type = 'diagram'", 
@@ -250,6 +237,14 @@ function mdn_init() {
   drupal_add_library('system', 'drupal.ajax');
 }
 */
+
+function get_unique_svg_number(){
+	 $id = variable_get('max_svg_id', 0);
+	 $id++;
+	 variable_set('max_svg_id', $id);
+	 
+	 return $id;
+}
 
 
 function mdn_menu() {

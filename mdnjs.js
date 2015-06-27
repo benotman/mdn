@@ -26,6 +26,12 @@
    'none3stroke_width': "0.566px"
    };
    
+   jQuery(document).ready(function($) {
+   
+     jQuery("svg[hide_elements='1'] path").css("opacity","0");
+	 jQuery("svg[hide_elements='1'] ellipse").css("opacity","0");
+});
+   
    function svgElementClicked(theElement, viewid){
 	   //jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/1");
 	   //winodw.open("?q=mdn/get/ajax/1");
