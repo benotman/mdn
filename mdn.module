@@ -146,9 +146,10 @@ function get_mdn() {
 		  $uniqueId = get_unique_svg_number();
 		  $svgId = 'svg' . $uniqueId; 
 
-          $rootNode->setAttribute("id", $svgId);
+          /* Commented for testing, uncomment for final version
+		  $rootNode->setAttribute("id", $svgId);
 		  $rootNode->setAttribute("prepared", 'yes');
-         
+          		  
 		  $elem_count =1;
           $elems = $doc->getElementsByTagName('path');
           foreach ($elems as $elem) {
@@ -161,16 +162,19 @@ function get_mdn() {
              $elem->setAttribute("id", $svgId . '_' . $elem_count);
 	         $elem_count++;
           }
+		  */
 		  
 		  $newContents = $doc->saveXML();
+		  /* Commented for testing, uncomment for final version
           file_put_contents($file->uri, $newContents);
+		  */
       }
 	  else{ // svg file is prepared before
 		  $newContents = $doc->saveXML(); 
 	  }
 	  
      $resultHtml = $resultHtml . '<br>' . $newContents;
-	 $diagram_data[$svgId]['hide']= $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
+	 //$diagram_data[$svgId]['hide']= $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
 	 
 	 $counter++;
 	 if($counter > $default_layout)

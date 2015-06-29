@@ -1,0 +1,35 @@
+Algorithms
+
+/*
+   send element id only
+   I can have a property of the svg_id in each element
+   in generic event handler, extract the svg_id when calling connections
+   
+hover 
+  I need to save regular, hover, select, and related colours 
+    hover (change current element using hover class e.g. diagram1:hover fill = )
+    mousehover
+      related elements -> save their style then change their style
+    mouseout
+      related elements -> go back to original style
+
+    click_event	 
+	  if(current is unselected or highlighted)
+         change current to selected
+	     highlight_related(viewid, id)
+	  else // current is selected
+		 if (highlight_count >0)
+			change current to highlighted
+         else
+            change current to regular
+         end if
+		 unhighlight_related(viewid, id)
+      end if		 
+      related elements -> 
+
+regular, selected, highlighted	 
+   show related content (button)	 
+      
+  class hover can change current element 
+  change class 
+*/

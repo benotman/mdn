@@ -32,7 +32,7 @@
 	 jQuery("svg[hide_elements='1'] ellipse").css("opacity","0");
 });
    
-   function svgElementClicked(theElement, viewid){
+   function svgElementClicked(theElement){
 	   //jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/1");
 	   //winodw.open("?q=mdn/get/ajax/1");
 	   
@@ -56,7 +56,7 @@
 	  // window.open("?q=node/5","_self");
    }
    	   
-   function svgElementMouseOver(theElement, viewid)
+   function svgElementMouseOver(theElement)
 			{
 				/*
 				  retrieve ids for related visual elements
@@ -97,11 +97,15 @@
 
 			}
 			
-	function hoverCallback(response){
-		 var result = jQuery.parseJSON(response);
-		 console.log(result[0].elementId);
+function hoverCallback(response){
+   var result = jQuery.parseJSON(response);
+   console.log(result[0].elementId);
 		
-	}		
+}
+	
+function svgElementMouseOut(theElement){
+	
+}	
 /*   
    function svgElementMouseOver(theElement, viewid)
 	{
