@@ -181,7 +181,9 @@ function get_mdn() {
 	    break;
    }
 
-   //drupal_add_js($diagram_data, 'setting');
+   $settingsArr=array(
+                      'connections' => get_connections());
+   drupal_add_js($settingsArr, 'setting');
    
    return  $resultHtml;  
   // $svg_js='none';
@@ -233,6 +235,22 @@ function get_mdn() {
 	
   //return  "<div id='mdn'><p>hello</p></div>";
   
+}
+
+function get_connections(){
+   
+   $result = db_query("SELECT * FROM drupalConnections");
+    $count=0;   
+	$arr=array();
+    foreach ($result as $record) {
+	  $arr[$count][0] = $record->view1;
+	  $arr[$count][1] = $record->element1;
+	  $arr[$count][2] = $record->view2;
+	  $arr[$count][3] = $record->element2;
+    $count++;	 
+	}
+	
+return $arr;
 }
 
 /*

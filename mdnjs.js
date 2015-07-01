@@ -35,6 +35,8 @@
    
      jQuery("svg[hide_elements='1'] path").css("opacity","0");
 	 jQuery("svg[hide_elements='1'] ellipse").css("opacity","0");
+	 
+	 console.log(Drupal.settings.connections[0][0]);
 });
    
    function svgElementClicked(theElement){
@@ -62,25 +64,33 @@
    }
    	   
   function svgElementMouseOver(theElement){
-	/*
-      retrieve ids for related visual elements
-	  highlight related elements
-	   - change attack graph to text boxes
-				  
-      Loading SVGs
-     */
-				 //jQuery.get("?q=mdn/hover/" + viewid + "/" + theElement.id, null, hoverCallback);
 
-	console.log(theElement.id);			 
-//    var IDs = getViewElementIDs(theElement.id);						  
-  //  jQuery.get("?q=mdn/hover/" + IDs[0] + "/" + IDs[1], null, hoverCallback);
+   /*
+   Ajax way of retrieving connections 
+   jQuery.get("?q=mdn/hover/" + IDs[0] + "/" + IDs[1], null, hoverCallback);
+   */
+   
+   var IDs = getViewElementIDs(theElement.id);						  
+
+    var result = jQuery.grep(Drupal.settings.connections, function(v,i) {
+           return (v[0] === IDs[0] && v[1] === IDs[1] && v[2] != 'cnt1') || (v[2] === IDs[0] && v[3] === IDs[1]  && v[0] != 'cnt1');
+    });
+   
+    if(result.length > 0){
+     	CurrentHoverFill= jQuery("#" + theElement.id).css("fill"); 
+	    CurrentHoverStroke= jQuery("#" + theElement.id).css("stroke"); 
+	    CurrentHoverStrokeWidth= jQuery("#" + theElement.id).css("stroke-width"); 
+	    CurrentHoverOpacity=jQuery("#" + theElement.id).css("opacity");  
+				
+	    jQuery("#" + theElement.id).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
+	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
+
+	}
+
 				
 }
 
 function getViewElementIDs(elementId){
-//   var IDs={};
-  // IDs.viewId = "Images/Block_04.png";
-   //IDs.elementId = "Images/Block_04.png";
    var res = elementId.split('_');
    return res;	
 }
@@ -90,14 +100,15 @@ function related(itemid){
 	   send ajax request
 	*/
 }
-			
+
+/*	Ajax way of retrieving connections		 
 function hoverCallback(response){
    var result = jQuery.parseJSON(response);
    if(result.length <= 1){ // no connections for this element. Note that the ajax request returns source element too
 	   return;
    }
    
-   var elem = result[result.length].viewId + '_' + result[result.length].elementId;
+    var elem = result[result.length -1].viewId + '_' + result[result.length -1].elementId;
    	CurrentHoverFill= jQuery("#" + elem).css("fill"); 
 	CurrentHoverStroke= jQuery("#" + elem).css("stroke"); 
 	CurrentHoverStrokeWidth= jQuery("#" + elem).css("stroke-width"); 
@@ -107,9 +118,13 @@ function hoverCallback(response){
 	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
 
    for(i=0; i< (result.length-1); i++){
-      console.log(result[0].viewId + ' ' + result[0].elementId);
+      //console.log(result[0].viewId + ' ' + result[0].elementId);
+	  targetElem = result[i].viewId + '_' + result[i].elementId;
+	  jQuery("#" + targetElem).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
+	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
 	}
 }
+*/
 	
 function svgElementMouseOut(theElement){
 	
