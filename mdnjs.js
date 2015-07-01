@@ -3,7 +3,8 @@
     var CurrentHoverStroke; 
 	var CurrentHoverOpacity;  
 	var CurrentHoverStrokeWidth;
-	
+	var relatedHighlightedElements=[];
+	var eventCounter=0;
 	
 	var rect = {
    'hoverfill': "rgba(235,131,22,1)",
@@ -69,7 +70,8 @@
    Ajax way of retrieving connections 
    jQuery.get("?q=mdn/hover/" + IDs[0] + "/" + IDs[1], null, hoverCallback);
    */
-   
+   console.log(eventCounter + " Tried mouseOver " + theElement.id);
+   eventCounter++;
    var IDs = getViewElementIDs(theElement.id);						  
 
     var result = jQuery.grep(Drupal.settings.connections, function(v,i) {
@@ -77,6 +79,9 @@
     });
    
     if(result.length > 0){
+		console.log(eventCounter + " entered mouseOver " + theElement.id);
+		eventCounter++;
+		
      	CurrentHoverFill= jQuery("#" + theElement.id).css("fill"); 
 	    CurrentHoverStroke= jQuery("#" + theElement.id).css("stroke"); 
 	    CurrentHoverStrokeWidth= jQuery("#" + theElement.id).css("stroke-width"); 
@@ -84,6 +89,32 @@
 				
 	    jQuery("#" + theElement.id).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
 	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
+		
+        relatedHighlightedElements.length=0;
+		var otherIndex;
+		for( var i = 0, len = result.length; i < len; i++ ) {
+			if(result[i][0] === IDs[0]){
+				otherView =result[i][2];
+				otherElement = result[i][3];
+				otherId = otherView + '_' + otherElement;
+			}
+			else{
+				otherView =result[i][0];
+				otherElement = result[i][1];
+				otherId = otherView + '_' + otherElement;
+			}
+
+		    relatedHighlightedElements[relatedHighlightedElements.length]= [otherView,
+			                                                                otherElement,
+		                                                    jQuery("#" + otherId).css("fill"),
+															jQuery("#" + otherId).css("stroke"),
+															jQuery("#" + otherId).css("stroke-width"),
+														    jQuery("#" + otherId).css("opacity")];
+																		
+		    jQuery("#" + otherId).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
+	                             .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
+		}
+		
 
 	}
 
@@ -127,7 +158,23 @@ function hoverCallback(response){
 */
 	
 function svgElementMouseOut(theElement){
-	
+	console.log(eventCounter + " Tried mouseout " + theElement.id);
+	eventCounter++;
+	if(relatedHighlightedElements.length > 0){
+		console.log(eventCounter + " entered mouseout " + theElement.id);
+		eventCounter++;
+		jQuery("#" + theElement.id).css("fill",CurrentHoverFill).css("stroke",CurrentHoverStroke)
+		                      .css("stroke-width",CurrentHoverStrokeWidth).css("opacity",CurrentHoverOpacity);
+
+       for(i=0;i<relatedHighlightedElements.length;i++){
+		   jQuery("#" + relatedHighlightedElements[i][0] + '_' + relatedHighlightedElements[i][1])
+		                                    .css("fill",relatedHighlightedElements[i][2])
+		                                    .css("stroke",relatedHighlightedElements[i][3])
+		                                    .css("stroke-width",relatedHighlightedElements[i][4])
+											.css("opacity",relatedHighlightedElements[i][5]);
+	   }
+       relatedHighlightedElements.length=0;	   
+	}
 }	
 /*   
    function svgElementMouseOver(theElement, viewid)
@@ -135,9 +182,9 @@ function svgElementMouseOut(theElement){
 	 if(viewid==="TreeView"){
 		}
 	else{
-    	var item2 =$("#" + theElement.id).find('ellipse, rect, path')[0];
-	      var item = $(item2);
-	      	$("#" + theElement.id).find('ellipse, rect, path').css("fill",rect.hoverfill)
+    	var item2 =jQuery("#" + theElement.id).find('ellipse, rect, path')[0];
+	      var item = jQuery(item2);
+	      	jQuery("#" + theElement.id).find('ellipse, rect, path').css("fill",rect.hoverfill)
 			                                                  .css("stroke",rect.hoverstroke)
 															  .css("stroke-width",rect.hoverstroke_width);
 		}
