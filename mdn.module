@@ -146,7 +146,7 @@ function get_mdn() {
 		  $uniqueId = get_unique_svg_number();
 		  $svgId = 'svg' . $uniqueId; 
 
-          /* Commented for testing, uncomment for final version
+          // Commented for testing, uncomment for final version
 		  $rootNode->setAttribute("id", $svgId);
 		  $rootNode->setAttribute("prepared", 'yes');
           		  
@@ -162,12 +162,12 @@ function get_mdn() {
              $elem->setAttribute("id", $svgId . '_' . $elem_count);
 	         $elem_count++;
           }
-		  */
+		  
 		  
 		  $newContents = $doc->saveXML();
-		  /* Commented for testing, uncomment for final version
+		  // Commented for testing, uncomment for final version
           file_put_contents($file->uri, $newContents);
-		  */
+		  
       }
 	  else{ // svg file is prepared before
 		  $newContents = $doc->saveXML(); 
@@ -325,7 +325,9 @@ function mdn_hover($viewId, $elementId){
 	$arr[$count]= array('viewId' => $view, 'elementId' => $elem);
     $count++;	 
 	}
-    	
+   
+   $arr[$count]= array('viewId' => $viewId, 'elementId' => $elementId); //adding source element 
+ 
    $jsonstring = drupal_json_encode($arr);
    drupal_json_output($jsonstring);
 }

@@ -1,4 +1,9 @@
 //(function ($) {
+	var CurrentHoverFill; 
+    var CurrentHoverStroke; 
+	var CurrentHoverOpacity;  
+	var CurrentHoverStrokeWidth;
+	
 	
 	var rect = {
    'hoverfill': "rgba(235,131,22,1)",
@@ -56,51 +61,54 @@
 	  // window.open("?q=node/5","_self");
    }
    	   
-   function svgElementMouseOver(theElement)
-			{
-				/*
-				  retrieve ids for related visual elements
-				  highlight related elements
-				  - change attack graph to text boxes
+  function svgElementMouseOver(theElement){
+	/*
+      retrieve ids for related visual elements
+	  highlight related elements
+	   - change attack graph to text boxes
 				  
-                 Loading SVGs
-                 				 
-				*/
+      Loading SVGs
+     */
 				 //jQuery.get("?q=mdn/hover/" + viewid + "/" + theElement.id, null, hoverCallback);
-				jQuery.get("?q=mdn/hover/" + "svg1" + "/" + "b31", null, hoverCallback);
+
+	console.log(theElement.id);			 
+//    var IDs = getViewElementIDs(theElement.id);						  
+  //  jQuery.get("?q=mdn/hover/" + IDs[0] + "/" + IDs[1], null, hoverCallback);
 				
-				/*
-				 if(viewid==="TreeView"){
-						//objfillColor= $("#" + theElement.id).css("fill"); 
-					    //objstrokeColor= $("#" + theElement.id).css("stroke"); 
-					    //objopacity=$("#" + theElement.id).css("opacity"); 
-						
-						//$("#" + theElement.id).css("fill",ellipse.hoverfill).css("stroke",ellipse.hoverstroke)
-						  //                    .css("stroke-width",ellipse.hoverstroke_width).css("opacity","1");
-						
-					}
-					else{
-					
-					var item2 =jQuery("#" + theElement.id).find('ellipse, rect, path')[0];
-				        var item = jQuery(item2);
-				//		objfillColor= item.css("fill"); 
-					//    objstrokeColor= item.css("stroke"); 
-			        	jQuery("#" + theElement.id).find('ellipse, rect, path').css("fill",rect.hoverfill)
-						                                                  .css("stroke",rect.hoverstroke)
-																		  .css("stroke-width",rect.hoverstroke_width);
+}
 
-						//related("AGView",theElement.id,"hoverhighlight");
+function getViewElementIDs(elementId){
+//   var IDs={};
+  // IDs.viewId = "Images/Block_04.png";
+   //IDs.elementId = "Images/Block_04.png";
+   var res = elementId.split('_');
+   return res;	
+}
 
-						}
-
-					*/	
-
-			}
+function related(itemid){
+	/*
+	   send ajax request
+	*/
+}
 			
 function hoverCallback(response){
    var result = jQuery.parseJSON(response);
-   console.log(result[0].elementId);
-		
+   if(result.length <= 1){ // no connections for this element. Note that the ajax request returns source element too
+	   return;
+   }
+   
+   var elem = result[result.length].viewId + '_' + result[result.length].elementId;
+   	CurrentHoverFill= jQuery("#" + elem).css("fill"); 
+	CurrentHoverStroke= jQuery("#" + elem).css("stroke"); 
+	CurrentHoverStrokeWidth= jQuery("#" + elem).css("stroke-width"); 
+	CurrentHoverOpacity=jQuery("#" + elem).css("opacity");  
+				
+	jQuery("#" + elem).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
+	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
+
+   for(i=0; i< (result.length-1); i++){
+      console.log(result[0].viewId + ' ' + result[0].elementId);
+	}
 }
 	
 function svgElementMouseOut(theElement){
