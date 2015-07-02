@@ -5,6 +5,9 @@ Algorithms
    I can have a property of the svg_id in each element
    in generic event handler, extract the svg_id when calling connections
    
+   when do I change style
+   hoverout
+   
 hover 
   I need to save regular, hover, select, and related colours 
     hover (change current element using hover class e.g. diagram1:hover fill = )
@@ -13,17 +16,27 @@ hover
     mouseout
       related elements -> go back to original style
 
+	
     click_event	 
 	  if(current is unselected or highlighted)
          change current to selected
 	     highlight_related(viewid, id)
+		   related = grep related elements in connections
+		   for each i element in related
+		      if i exist in highlighted
+			    increment highlighted_count
+			  else
+                add i to highlighted				  
 	  else // current is selected
 		 if (highlight_count >0)
-			change current to highlighted
+			change current to highlighted (diagram highlighted color)
          else
             change current to regular
          end if
 		 unhighlight_related(viewid, id)
+		   grep related elements from connections
+		      grep related from highlighted
+			    decrease and if anyone is 0 => unhighlight
       end if		 
       related elements -> 
 

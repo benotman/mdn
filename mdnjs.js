@@ -1,10 +1,15 @@
 //(function ($) {
+	var CurrentHoverElement=""; 
 	var CurrentHoverFill; 
     var CurrentHoverStroke; 
 	var CurrentHoverOpacity;  
 	var CurrentHoverStrokeWidth;
 	var relatedHighlightedElements=[];
 	var eventCounter=0;
+	
+	var clickSelectedElements=[];
+	var clickHighilightedElements=[];
+	
 	
 	var rect = {
    'hoverfill': "rgba(235,131,22,1)",
@@ -36,32 +41,45 @@
    
      jQuery("svg[hide_elements='1'] path").css("opacity","0");
 	 jQuery("svg[hide_elements='1'] ellipse").css("opacity","0");
+	 jQuery("svg text").css("pointer-events","none");
 	 
-	 console.log(Drupal.settings.connections[0][0]);
 });
    
    function svgElementClicked(theElement){
-	   //jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/1");
-	   //winodw.open("?q=mdn/get/ajax/1");
-	   
-	   /*
-	      DB Schema(ViewID,itemID,ViewID,ItemID)
-		  ViewID=cnt1 --> Content nodes
-		  
-		  load a specific url
-		  hook_menu
-		    Retrieve connections from DB
-		    if one connection
-		       view node
-	        else
-               construct a list of links		  
-		  
-	   */
-	   //jQuery("#mdnNodeViewer").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
-	   jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
+      //jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
 	   //window.open("?q=mdn/get/ajax/" + viewid + "/" + theElement.id, "_self");
-	 // window.open("?q=ajaxreader/ajax/5", "_self"); // + viewid + "/" + theElement.id, "_self"
-	  // window.open("?q=node/5","_self");
+	/*
+       if selected or not
+    */	
+	var IDs = getViewElementIDs(theElement.id);		
+	
+	var cons = jQuery.grep(Drupal.settings.connections, function(v,i) {
+           return (v[0] === IDs[0] && v[1] === IDs[1] && v[2] != 'cnt1') || (v[2] === IDs[0] && v[3] === IDs[1]  && v[0] != 'cnt1');
+    });
+	
+	if(cons.length = 0) //No connections for element, never mind
+		return;
+	
+	var selElem = jQuery.grep(clickSelectedElements, function(v,i) {
+        return (v === theElement.id);
+    });
+		
+	if(selElem.length === 0){ 
+		jQuery("#" + theElement.id).css("fill",rect.selectfill).css("stroke",rect.selectstroke)
+	                               .css("stroke-width",rect.selectstroke_width).css("opacity","1");
+									   
+		clickSelectedElements[clickSelectedElements.length] = theElement.id;						   
+	}
+	else{ //element is currently selected
+	    console.log("Original style " + jQuery("#" + theElement.id).attr("OriginalStyle"));
+		console.log("style before " + jQuery("#" + theElement.id).attr("style"));
+		jQuery("#" + theElement.id).attr("style", jQuery("#" + theElement.id).attr("OriginalStyle"));
+		
+		console.log("style after " + jQuery("#" + theElement.id).attr("style"));
+	}
+			
+     	
+	//clickHighilightedElements
    }
    	   
   function svgElementMouseOver(theElement){
@@ -70,8 +88,13 @@
    Ajax way of retrieving connections 
    jQuery.get("?q=mdn/hover/" + IDs[0] + "/" + IDs[1], null, hoverCallback);
    */
-   console.log(eventCounter + " Tried mouseOver " + theElement.id);
-   eventCounter++;
+   if(CurrentHoverElement === theElement.id)
+	   return;
+   else
+	   CurrentHoverElement=theElement.id;
+   
+   //console.log(eventCounter + " Tried mouseOver " + theElement.id);
+   //eventCounter++;
    var IDs = getViewElementIDs(theElement.id);						  
 
     var result = jQuery.grep(Drupal.settings.connections, function(v,i) {
@@ -79,8 +102,8 @@
     });
    
     if(result.length > 0){
-		console.log(eventCounter + " entered mouseOver " + theElement.id);
-		eventCounter++;
+		//console.log(eventCounter + " entered mouseOver " + theElement.id);
+		//eventCounter++;
 		
      	CurrentHoverFill= jQuery("#" + theElement.id).css("fill"); 
 	    CurrentHoverStroke= jQuery("#" + theElement.id).css("stroke"); 
@@ -158,11 +181,12 @@ function hoverCallback(response){
 */
 	
 function svgElementMouseOut(theElement){
-	console.log(eventCounter + " Tried mouseout " + theElement.id);
-	eventCounter++;
+	
+	//console.log(eventCounter + " Tried mouseout " + theElement.id);
+	//eventCounter++;
 	if(relatedHighlightedElements.length > 0){
-		console.log(eventCounter + " entered mouseout " + theElement.id);
-		eventCounter++;
+		//console.log(eventCounter + " entered mouseout " + theElement.id);
+		//eventCounter++;
 		jQuery("#" + theElement.id).css("fill",CurrentHoverFill).css("stroke",CurrentHoverStroke)
 		                      .css("stroke-width",CurrentHoverStrokeWidth).css("opacity",CurrentHoverOpacity);
 
@@ -175,6 +199,7 @@ function svgElementMouseOut(theElement){
 	   }
        relatedHighlightedElements.length=0;	   
 	}
+	CurrentHoverElement="";
 }	
 /*   
    function svgElementMouseOver(theElement, viewid)

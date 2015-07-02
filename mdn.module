@@ -144,22 +144,25 @@ function get_mdn() {
 		  $scriptNode->appendChild($cdata);
  		
 		  $uniqueId = get_unique_svg_number();
-		  $svgId = 'svg' . $uniqueId; 
-
+		  //$svgId = 'svg' . $uniqueId; 
+          $svgId = $rootNode->getAttribute("id");
+		  
           // Commented for testing, uncomment for final version
-		  $rootNode->setAttribute("id", $svgId);
+		 // $rootNode->setAttribute("id", $svgId);
 		  $rootNode->setAttribute("prepared", 'yes');
           		  
 		  $elem_count =1;
           $elems = $doc->getElementsByTagName('path');
           foreach ($elems as $elem) {
              $elem->setAttribute("id", $svgId . '_' . $elem_count);
+			 $elem->setAttribute("OriginalStyle", $elem->getAttribute("style"));
 	         $elem_count++;
           }
 		  
           $elems = $doc->getElementsByTagName('ellipse');
           foreach ($elems as $elem) {
              $elem->setAttribute("id", $svgId . '_' . $elem_count);
+			 $elem->setAttribute("OriginalStyle", $elem->getAttribute("style"));
 	         $elem_count++;
           }
 		  
