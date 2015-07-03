@@ -11,6 +11,7 @@ Algorithms
    load all visual elements (that have connections) for default diagrams (then load visual elements for later loaded diagrams)
    
    element_id, original_color, # of incoming highlighting
+   I worked less hours today as I was busy with family paperwork. I am still working on element selection. I thought I can save the original style of each diagram element in its dom element but that does not seem to work; both jQuery and regular dom methods return errors. I think  that is because of the custom attribute I am adding to the svg. Now I am changing to passing a list of all diagram elements with their styles from php to javascript. I am including only elements which have connections to other elements in other diagrams.    
    
    
    when click

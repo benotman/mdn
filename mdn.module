@@ -258,14 +258,17 @@ return $arr;
 
 function get_visual_elements_with_connections($diagramId){
    
-   $result = db_query("SELECT * FROM drupalConnections");
+   $result = db_query("select view1 as viewid, element1 as elementid from drupalConnections "
+                       . " where view2 != 'cnt1' and view1 != 'cnt1' and view1 =:diagramid group by viewid,elementid "
+				   . " union "
+                   . " select view2 as viewid, element2 as elementid from drupalConnections "
+					   . " where view1 != 'cnt1' and view2 != 'cnt1' and view2 =:diagramid group by viewid,elementid",
+					   array('diagramid' => $diagramId));
     $count=0;   
 	$arr=array();
     foreach ($result as $record) {
-	  $arr[$count][0] = $record->view1;
-	  $arr[$count][1] = $record->element1;
-	  $arr[$count][2] = $record->view2;
-	  $arr[$count][3] = $record->element2;
+	  $arr[$count][0] = $record->viewid;
+	  $arr[$count][1] = $record->elementid;
     $count++;	 
 	}
 	
