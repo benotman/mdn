@@ -71,7 +71,7 @@
 		clickSelectedElements[clickSelectedElements.length] = theElement.id;						   
 	}
 	else{ //element is currently selected
-	    console.log("Original style " + jQuery("#" + theElement.id).attr("OriginalStyle"));
+	    console.log("Original style " + jQuery("#" + theElement.id)[0].getAttribute("OriginalStyle"));
 		console.log("style before " + jQuery("#" + theElement.id).attr("style"));
 		jQuery("#" + theElement.id).attr("style", jQuery("#" + theElement.id).attr("OriginalStyle"));
 		

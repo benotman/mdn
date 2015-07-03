@@ -256,6 +256,22 @@ function get_connections(){
 return $arr;
 }
 
+function get_visual_elements_with_connections($diagramId){
+   
+   $result = db_query("SELECT * FROM drupalConnections");
+    $count=0;   
+	$arr=array();
+    foreach ($result as $record) {
+	  $arr[$count][0] = $record->view1;
+	  $arr[$count][1] = $record->element1;
+	  $arr[$count][2] = $record->view2;
+	  $arr[$count][3] = $record->element2;
+    $count++;	 
+	}
+	
+return $arr;
+}
+
 /*
 function mdn_init() {
   drupal_add_js('misc/jquery.form.js');

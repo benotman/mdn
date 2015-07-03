@@ -5,7 +5,29 @@ Algorithms
    I can have a property of the svg_id in each element
    in generic event handler, extract the svg_id when calling connections
    
+   item_id, original fill, ..., # of incoming highlighting requests
+   
+   
+   load all visual elements (that have connections) for default diagrams (then load visual elements for later loaded diagrams)
+   
+   element_id, original_color, # of incoming highlighting
+   
+   
+   when click
+     when change to selected 
+	    if not in array add it with color saved before hover
+        		
+	 when restore to highlighted
+	 
+	 when 
+         
+   
    when do I change style
+   select
+      for first time (not found in array)
+	    add item in array with original color (saved before hover)
+	  else
+        		  
    hoverout
    
 hover 
@@ -26,7 +48,7 @@ hover
 		      if i exist in highlighted
 			    increment highlighted_count
 			  else
-                add i to highlighted				  
+                add i to highlighted and change color to highlighted				  
 	  else // current is selected
 		 if (highlight_count >0)
 			change current to highlighted (diagram highlighted color)
