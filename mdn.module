@@ -113,10 +113,13 @@ function get_mdn() {
    }
 
    $counter=1;
+   $visual_element_list_this_diagram = array();
+   $visual_element_list = array();
    $resultHtml='';
    $newContents='';
    $nodes = entity_load('node', array_keys($result['node']));
-
+   
+   
   // $res = print_r($nodes, true);
   // return $res;
    
@@ -179,13 +182,16 @@ function get_mdn() {
      $resultHtml = $resultHtml . '<br>' . $newContents;
 	 //$diagram_data[$svgId]['hide']= $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
 	 
+	 $visual_element_list_this_diagram=get_visual_elements_with_connections($svgId);
+	 $visual_element_list = array_merge($visual_element_list, $visual_element_list_this_diagram);
 	 $counter++;
 	 if($counter > $default_layout)
 	    break;
    }
 
    $settingsArr=array(
-                      'connections' => get_connections());
+                      'connections' => get_connections(),
+					  'visualElements' => $visual_element_list);
    drupal_add_js($settingsArr, 'setting');
    
    return  $resultHtml;  
@@ -274,6 +280,7 @@ function get_visual_elements_with_connections($diagramId){
 	
 return $arr;
 }
+
 
 /*
 function mdn_init() {

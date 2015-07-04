@@ -1,6 +1,7 @@
-Algorithms
 
 /*
+************  compare ag and threat tree
+
    send element id only
    I can have a property of the svg_id in each element
    in generic event handler, extract the svg_id when calling connections
@@ -40,8 +41,18 @@ hover
       related elements -> go back to original style
 
 	
+	changes possible when a mouse enters an element
+	  0 -> 1 unselected to selected
+	  selected to unselected
+	  unselected to highlighted (impossible)
+	  highlighted to unselected (inpossible)
+	  highlighted to selected
+	  selected to highlighted
+	
+flag keepColor	
+	
     click_event	 
-	  if(current is unselected or highlighted)
+	  if(current is unselected or highlighted) // add status to array (0 unselected, 1 selected, 2 highlighted)
          change current to selected
 	     highlight_related(viewid, id)
 		   related = grep related elements in connections

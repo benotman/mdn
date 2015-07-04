@@ -9,6 +9,8 @@
 	
 	var clickSelectedElements=[];
 	var clickHighilightedElements=[];
+	var visualElements = [];
+	var flagKeepColor = false;
 	
 	
 	var rect = {
@@ -36,12 +38,35 @@
    'none3stroke': "rgba(134,192,235,1)",
    'none3stroke_width': "0.566px"
    };
-   
+ 
+ function getIndexOfElement(arr, viewId, elemId){
+    for(var i=0; i<arr.length; i++){
+        if (arr[i][0] === viewId && arr[i][1] === elemId){
+            return i;
+        }
+    }
+	return -1;
+}
    jQuery(document).ready(function($) {
    
      jQuery("svg[hide_elements='1'] path").css("opacity","0");
 	 jQuery("svg[hide_elements='1'] ellipse").css("opacity","0");
 	 jQuery("svg text").css("pointer-events","none");
+	 
+	 var elemId='';
+	 for (var i=0;i<Drupal.settings.visualElements.length;i++){
+        elemId ="#" + Drupal.settings.visualElements[i][0] + '_' + Drupal.settings.visualElements[i][1];
+		visualElements[i]=[Drupal.settings.visualElements[i][0],
+		                   Drupal.settings.visualElements[i][1],
+		                   jQuery(elemId).css("fill"),
+		                   jQuery(elemId).css("stroke"),
+		                   jQuery(elemId).css("stroke-width"),
+		                   jQuery(elemId).css("opacity"),
+		                   0,0]; // [0] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
+						         // [7] number of highlighting requests made by other elements
+        console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
+	 }
+	 
 	 
 });
    
@@ -51,31 +76,35 @@
 	/*
        if selected or not
     */	
+	console.log("clicked " + theElement.id);
 	var IDs = getViewElementIDs(theElement.id);		
 	
-	var cons = jQuery.grep(Drupal.settings.connections, function(v,i) {
-           return (v[0] === IDs[0] && v[1] === IDs[1] && v[2] != 'cnt1') || (v[2] === IDs[0] && v[3] === IDs[1]  && v[0] != 'cnt1');
-    });
-	
-	if(cons.length = 0) //No connections for element, never mind
+	var elemIndex = getIndexOfElement(visualElements, IDs[0], IDs[1]);
+	if(elemIndex === -1) //No connections for element, never mind
 		return;
 	
-	var selElem = jQuery.grep(clickSelectedElements, function(v,i) {
-        return (v === theElement.id);
-    });
-		
-	if(selElem.length === 0){ 
-		jQuery("#" + theElement.id).css("fill",rect.selectfill).css("stroke",rect.selectstroke)
+	var elemId = visualElements[elemIndex][0] + '_' + visualElements[elemIndex][1];
+	
+	if(visualElements[elemIndex][6] === 0 || visualElements[elemIndex][6] === 2){ //element is unselected or highlighted
+	    jQuery("#" + elemId).css("fill",rect.selectfill).css("stroke",rect.selectstroke)
 	                               .css("stroke-width",rect.selectstroke_width).css("opacity","1");
 									   
-		clickSelectedElements[clickSelectedElements.length] = theElement.id;						   
+		visualElements[elemIndex][6]=1; //element is selected now
+		flagKeepColor=true;
 	}
-	else{ //element is currently selected
-	    console.log("Original style " + jQuery("#" + theElement.id)[0].getAttribute("OriginalStyle"));
-		console.log("style before " + jQuery("#" + theElement.id).attr("style"));
-		jQuery("#" + theElement.id).attr("style", jQuery("#" + theElement.id).attr("OriginalStyle"));
+	else{ 
+	    jQuery("#" + elemId).css("fill",visualElements[elemIndex][2]).css("stroke",visualElements[elemIndex][3])
+	                               .css("stroke-width",visualElements[elemIndex][4]).css("opacity",visualElements[elemIndex][5]);
+									   
+		visualElements[elemIndex][6]=0; //element is unselected now
+	    flagKeepColor= true;
+	
+	//element is currently selected
+	   // console.log("Original style " + jQuery("#" + theElement.id)[0].getAttribute("OriginalStyle"));
+		//console.log("style before " + jQuery("#" + theElement.id).attr("style"));
+		//jQuery("#" + theElement.id).attr("style", jQuery("#" + theElement.id).attr("OriginalStyle"));
 		
-		console.log("style after " + jQuery("#" + theElement.id).attr("style"));
+		//console.log("style after " + jQuery("#" + theElement.id).attr("style"));
 	}
 			
      	
@@ -88,7 +117,7 @@
    Ajax way of retrieving connections 
    jQuery.get("?q=mdn/hover/" + IDs[0] + "/" + IDs[1], null, hoverCallback);
    */
-   if(CurrentHoverElement === theElement.id)
+   if(CurrentHoverElement === theElement.id) // handle double hover (sometimes mouseover is fired twice)
 	   return;
    else
 	   CurrentHoverElement=theElement.id;
@@ -112,6 +141,8 @@
 				
 	    jQuery("#" + theElement.id).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
 	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
+		
+        flagKeepColor = false;		
 		
         relatedHighlightedElements.length=0;
 		var otherIndex;
@@ -184,6 +215,10 @@ function svgElementMouseOut(theElement){
 	
 	//console.log(eventCounter + " Tried mouseout " + theElement.id);
 	//eventCounter++;
+	
+    if(flagKeepColor === true)
+		return;
+	
 	if(relatedHighlightedElements.length > 0){
 		//console.log(eventCounter + " entered mouseout " + theElement.id);
 		//eventCounter++;
