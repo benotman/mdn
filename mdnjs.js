@@ -47,28 +47,7 @@
     }
 	return -1;
 }
-   jQuery(document).ready(function($) {
    
-     jQuery("svg[hide_elements='1'] path").css("opacity","0");
-	 jQuery("svg[hide_elements='1'] ellipse").css("opacity","0");
-	 jQuery("svg text").css("pointer-events","none");
-	 
-	 var elemId='';
-	 for (var i=0;i<Drupal.settings.visualElements.length;i++){
-        elemId ="#" + Drupal.settings.visualElements[i][0] + '_' + Drupal.settings.visualElements[i][1];
-		visualElements[i]=[Drupal.settings.visualElements[i][0],
-		                   Drupal.settings.visualElements[i][1],
-		                   jQuery(elemId).css("fill"),
-		                   jQuery(elemId).css("stroke"),
-		                   jQuery(elemId).css("stroke-width"),
-		                   jQuery(elemId).css("opacity"),
-		                   0,0]; // [0] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
-						         // [7] number of highlighting requests made by other elements
-        console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
-	 }
-	 
-	 
-});
    
    function svgElementClicked(theElement){
       //jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
@@ -236,6 +215,52 @@ function svgElementMouseOut(theElement){
 	}
 	CurrentHoverElement="";
 }	
+
+	function sendClickToParentDocument(evt)
+	{
+	   console.log(evt.target.getAttribute("id") + " " + evt.currentTarget.getAttribute("id"));
+	   //evt.stopPropagation();
+	   // SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
+	    //evt.cancelBubble = true;
+		var target = evt.currentTarget;
+		if(target.correspondingUseElement)
+			target = target.correspondingUseElement;
+        
+		
+        // call a method in the parent document if it exists
+        if (parent.svgElementClicked)
+			parent.svgElementClicked(target); // after finishing svg loader and identifier, I will have svg id embedded in each element id 
+		//else
+		//	alert("Error: Function svgElementClicked does not exist");
+	}
+		
+	function sendMouseOverToParentDocument(evt)
+	{
+	  // SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
+	  var target = evt.currentTarget;
+	  if(target.correspondingUseElement)
+		  target = target.correspondingUseElement;
+      
+      // call a method in the parent document if it exists
+      if (window.parent.svgElementMouseOver)
+		  window.parent.svgElementMouseOver(target);
+	  //else
+		//  alert("Error: Function svgElementMouseOver does not exist");
+	}
+
+	function sendMouseOutToParentDocument(evt)
+	{
+	  // SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
+	  var target = evt.currentTarget;
+	  if(target.correspondingUseElement)
+		  target = target.correspondingUseElement;
+      
+      // call a method in the parent document if it exists
+      if (window.parent.svgElementMouseOut)
+		  window.parent.svgElementMouseOut(target);
+	//  else
+		//  alert("Error: Function svgElementMouseOut does not exist");
+	}	
 /*   
    function svgElementMouseOver(theElement, viewid)
 	{
@@ -274,3 +299,42 @@ function svgElementMouseOut(theElement){
 		*/
 		
 //})(jQuery);
+
+jQuery(document).ready(function($) {
+   
+    var arr = document.getElementsByTagName("path");
+	for (var i = 0; i < arr.length; i++) { 
+	   arr[i].addEventListener("click", sendClickToParentDocument, false);
+	   arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
+	   arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
+	   
+	}
+
+	arr = document.getElementsByTagName("ellipse");
+	for (var i = 0; i < arr.length; i++) { 
+	   arr[i].addEventListener("click", sendClickToParentDocument, false);
+	   arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
+	   arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
+	   
+	}
+   
+     jQuery("svg[hide_elements='1'] path").css("opacity","0");
+	 jQuery("svg[hide_elements='1'] ellipse").css("opacity","0");
+	 jQuery("svg text").css("pointer-events","none");
+	 
+	 var elemId='';
+	 for (var i=0;i<Drupal.settings.visualElements.length;i++){
+        elemId ="#" + Drupal.settings.visualElements[i][0] + '_' + Drupal.settings.visualElements[i][1];
+		visualElements[i]=[Drupal.settings.visualElements[i][0],
+		                   Drupal.settings.visualElements[i][1],
+		                   jQuery(elemId).css("fill"),
+		                   jQuery(elemId).css("stroke"),
+		                   jQuery(elemId).css("stroke-width"),
+		                   jQuery(elemId).css("opacity"),
+		                   0,0]; // [0] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
+						         // [7] number of highlighting requests made by other elements
+        console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
+	 }
+	 
+	 
+});

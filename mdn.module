@@ -140,11 +140,11 @@ function get_mdn() {
 	  
 	  if($prepared === ''){ // SVG file is loaded for the first time, MDN prepares svg file by assigning unique ids for the svg file and all elements
 
-          $scriptNode = $doc->createElement("script");
-          $rootNode->appendChild($scriptNode);
-	      $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs2.js'); 
-	      $cdata = $doc->createCDATASection($svg_js);
-		  $scriptNode->appendChild($cdata);
+        //  $scriptNode = $doc->createElement("script");
+        //  $rootNode->appendChild($scriptNode);
+	     // $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs2.js'); 
+	     // $cdata = $doc->createCDATASection($svg_js);
+		 // $scriptNode->appendChild($cdata);
  		
 		  $uniqueId = get_unique_svg_number();
 		  //$svgId = 'svg' . $uniqueId; 
