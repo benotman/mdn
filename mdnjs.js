@@ -1,5 +1,5 @@
 //(function ($) {
-	var CurrentHoverElement=""; 
+	//var CurrentHoverElement=""; 
 	var CurrentHoverFill; 
     var CurrentHoverStroke; 
 	var CurrentHoverOpacity;  
@@ -49,16 +49,15 @@
 }
    
    
-   function svgElementClicked(theElement){
+function svgElementClicked(theElement){
       //jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
 	   //window.open("?q=mdn/get/ajax/" + viewid + "/" + theElement.id, "_self");
 	/*
        if selected or not
     */	
-	console.log("clicked " + theElement.id);
 	var IDs = getViewElementIDs(theElement.id);		
 	
-	var elemIndex = getIndexOfElement(visualElements, IDs[0], IDs[1]);
+	var elemIndex = getIndexOfElement(visualElements, IDs[0], IDs[1]); // 
 	if(elemIndex === -1) //No connections for element, never mind
 		return;
 	
@@ -67,52 +66,37 @@
 	if(visualElements[elemIndex][6] === 0 || visualElements[elemIndex][6] === 2){ //element is unselected or highlighted
 	    jQuery("#" + elemId).css("fill",rect.selectfill).css("stroke",rect.selectstroke)
 	                               .css("stroke-width",rect.selectstroke_width).css("opacity","1");
-									   
+								   
+		//highlight others if they are not selected, increment # of incoming highlighting requests							   
 		visualElements[elemIndex][6]=1; //element is selected now
 		flagKeepColor=true;
 	}
-	else{ 
+	else{ //element is selected ->unselect
 	    jQuery("#" + elemId).css("fill",visualElements[elemIndex][2]).css("stroke",visualElements[elemIndex][3])
 	                               .css("stroke-width",visualElements[elemIndex][4]).css("opacity",visualElements[elemIndex][5]);
 									   
 		visualElements[elemIndex][6]=0; //element is unselected now
 	    flagKeepColor= true;
-	
-	//element is currently selected
-	   // console.log("Original style " + jQuery("#" + theElement.id)[0].getAttribute("OriginalStyle"));
-		//console.log("style before " + jQuery("#" + theElement.id).attr("style"));
-		//jQuery("#" + theElement.id).attr("style", jQuery("#" + theElement.id).attr("OriginalStyle"));
-		
-		//console.log("style after " + jQuery("#" + theElement.id).attr("style"));
+        
+        //unselect others		
 	}
 			
-     	
-	//clickHighilightedElements
-   }
+}
    	   
-  function svgElementMouseOver(theElement){
+function svgElementMouseOver(theElement){
 
-   /*
+   /* an old way of retrieving connections using ajax
    Ajax way of retrieving connections 
    jQuery.get("?q=mdn/hover/" + IDs[0] + "/" + IDs[1], null, hoverCallback);
    */
-   if(CurrentHoverElement === theElement.id) // handle double hover (sometimes mouseover is fired twice)
-	   return;
-   else
-	   CurrentHoverElement=theElement.id;
    
-   //console.log(eventCounter + " Tried mouseOver " + theElement.id);
-   //eventCounter++;
-   var IDs = getViewElementIDs(theElement.id);						  
+    var IDs = getViewElementIDs(theElement.id);						  
 
     var result = jQuery.grep(Drupal.settings.connections, function(v,i) {
            return (v[0] === IDs[0] && v[1] === IDs[1] && v[2] != 'cnt1') || (v[2] === IDs[0] && v[3] === IDs[1]  && v[0] != 'cnt1');
     });
    
-    if(result.length > 0){
-		//console.log(eventCounter + " entered mouseOver " + theElement.id);
-		//eventCounter++;
-		
+    if(result.length > 0){ // element has connections -> do highlighting
      	CurrentHoverFill= jQuery("#" + theElement.id).css("fill"); 
 	    CurrentHoverStroke= jQuery("#" + theElement.id).css("stroke"); 
 	    CurrentHoverStrokeWidth= jQuery("#" + theElement.id).css("stroke-width"); 
@@ -121,9 +105,11 @@
 	    jQuery("#" + theElement.id).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
 	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
 		
-        flagKeepColor = false;		
+        flagKeepColor = false; // after mouseover, if mouseclick is fired and element style is changes
+                               // this flag will equal true so mouseout will not restore element style		
 		
-        relatedHighlightedElements.length=0;
+		//save style for related elements in other diagrams so we can restore the style in mouseout
+        relatedHighlightedElements.length=0; 
 		var otherIndex;
 		for( var i = 0, len = result.length; i < len; i++ ) {
 			if(result[i][0] === IDs[0]){
@@ -146,12 +132,15 @@
 																		
 		    jQuery("#" + otherId).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
 	                             .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
-		}
+		} // end for
 		
+    } // end element has connections
 
-	}
+} // end mouseover event
 
-				
+function getRelatedVisualElements(elementId){
+	
+	
 }
 
 function getViewElementIDs(elementId){
@@ -191,19 +180,15 @@ function hoverCallback(response){
 */
 	
 function svgElementMouseOut(theElement){
-	
-	//console.log(eventCounter + " Tried mouseout " + theElement.id);
-	//eventCounter++;
-	
-    if(flagKeepColor === true)
+    if(flagKeepColor === true) // look at mouseover for details
 		return;
 	
-	if(relatedHighlightedElements.length > 0){
-		//console.log(eventCounter + " entered mouseout " + theElement.id);
-		//eventCounter++;
+	if(relatedHighlightedElements.length > 0){ // element has connections so style was changed in mouseover
+	    // restore style for this element
 		jQuery("#" + theElement.id).css("fill",CurrentHoverFill).css("stroke",CurrentHoverStroke)
 		                      .css("stroke-width",CurrentHoverStrokeWidth).css("opacity",CurrentHoverOpacity);
 
+       //restore style 							     
        for(i=0;i<relatedHighlightedElements.length;i++){
 		   jQuery("#" + relatedHighlightedElements[i][0] + '_' + relatedHighlightedElements[i][1])
 		                                    .css("fill",relatedHighlightedElements[i][2])
@@ -216,7 +201,8 @@ function svgElementMouseOut(theElement){
 	CurrentHoverElement="";
 }	
 
-	function sendClickToParentDocument(evt)
+
+function sendClickToParentDocument(evt)
 	{
 	   console.log(evt.target.getAttribute("id") + " " + evt.currentTarget.getAttribute("id"));
 	   //evt.stopPropagation();
