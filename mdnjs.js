@@ -25,23 +25,11 @@
    'selectfill': "rgba(49,96,62,1)",
    'selectstroke': "rgba(116,88,36,1)",
    'selectstroke_width': "1.0px",
-   
-   'none1fill': "rgba(22,87,136,1)",
-   'none1stroke': "rgba(82,129,164,1)",
-   'none1stroke_width': "1.0px",
-
-   'none2fill': "rgba(137,14,39,1)",
-   'none2stroke': "rgba(82,129,164,1)",
-   'none2stroke_width': "1.0px",
- 
-   'none3fill': "rgba(73,132,181,1)",
-   'none3stroke': "rgba(134,192,235,1)",
-   'none3stroke_width': "0.566px"
    };
- 
- function getIndexOfElement(arr, viewId, elemId){
-    for(var i=0; i<arr.length; i++){
-        if (arr[i][0] === viewId && arr[i][1] === elemId){
+
+function getIndexOfElement(viewId, elemId){
+    for(var i=0; i<visualElements.length; i++){
+        if (visualElements[i][0] === viewId && visualElements[i][1] === elemId){
             return i;
         }
     }
@@ -57,28 +45,62 @@ function svgElementClicked(theElement){
     */	
 	var IDs = getViewElementIDs(theElement.id);		
 	
-	var elemIndex = getIndexOfElement(visualElements, IDs[0], IDs[1]); // 
+	var elemIndex = getIndexOfElement(IDs[0], IDs[1]); // 
 	if(elemIndex === -1) //No connections for element, never mind
 		return;
 	
 	var elemId = visualElements[elemIndex][0] + '_' + visualElements[elemIndex][1];
 	
+	var otherElements = getRelatedVisualElements(theElement.id);;
 	if(visualElements[elemIndex][6] === 0 || visualElements[elemIndex][6] === 2){ //element is unselected or highlighted
-	    jQuery("#" + elemId).css("fill",rect.selectfill).css("stroke",rect.selectstroke)
-	                               .css("stroke-width",rect.selectstroke_width).css("opacity","1");
-								   
-		//highlight others if they are not selected, increment # of incoming highlighting requests							   
+	    changeStyle(elemId,'select',0);
+
+		//highlight others if they are not selected, increment # of incoming highlighting requests	
+        
+        for(i=0;i<otherElements.length;i++){
+			if(visualElements[otherElements[i]][6] === 0){ // related element is currently regular
+				//change to green
+				changeStyle('','highlight',otherElements[i]);
+				visualElements[otherElements[i]][6]=2; //change element to highlighted
+				visualElements[otherElements[i]][7]=1; // highlighting count
+			}
+			else if(visualElements[otherElements[i]][6] === 1){ // element is currently selected
+				//no change to style
+				visualElements[otherElements[i]][7] += 1; // highlighting count
+			}
+			else if(visualElements[otherElements[i]][6] === 2){ // element is currently highlighetd
+				//no change to style
+				visualElements[otherElements[i]][7] += 1; // highlighting count
+			}
+		}		
 		visualElements[elemIndex][6]=1; //element is selected now
 		flagKeepColor=true;
 	}
 	else{ //element is selected ->unselect
-	    jQuery("#" + elemId).css("fill",visualElements[elemIndex][2]).css("stroke",visualElements[elemIndex][3])
-	                               .css("stroke-width",visualElements[elemIndex][4]).css("opacity",visualElements[elemIndex][5]);
-									   
-		visualElements[elemIndex][6]=0; //element is unselected now
+	    if(visualElements[elemIndex][7] === 0){
+		   changeStyle(elemId,'highlighted',elemIndex); 	
+		   visualElements[elemIndex][6]=2; //element is highlighted now		   
+		}else{
+		   changeStyle(elemId,'regular',elemIndex);
+           visualElements[elemIndex][6]=0; //element is regular now		   
+		}
+			
+		for(i=0;i<otherElements.length;i++){
+		   if(visualElements[otherElements[i]][6] === 1){  //selected -> decrease highlighted
+			   visualElements[otherElements[i]][7] -= 1;
+		   }
+		   else if(visualElements[otherElements[i]][6] === 2){ //highlighted -> decrease highlight count, if 0 -> change to regular		 
+			   visualElements[otherElements[i]][7] -= 1;
+			   if(visualElements[otherElements[i]][7] === 0){
+				   visualElements[otherElements[i]][6]=0;
+				   changeStyle('','regular',otherElements[i]);
+			   }
+		   }
+		  
+             
+		}
+		
 	    flagKeepColor= true;
-        
-        //unselect others		
 	}
 			
 }
@@ -140,13 +162,61 @@ function svgElementMouseOver(theElement){
 
 function getRelatedVisualElements(elementId){
 	
+	var IDs = getViewElementIDs(elementId);						  
+
+    var result = jQuery.grep(Drupal.settings.connections, function(v,i) {
+           return (v[0] === IDs[0] && v[1] === IDs[1] && v[2] != 'cnt1') || (v[2] === IDs[0] && v[3] === IDs[1]  && v[0] != 'cnt1');
+    });
 	
+	var arr=[];
+	var otherIndex;
+	for( var i = 0, len = result.length; i < len; i++ ) {
+		if(result[i][0] === IDs[0]){
+			otherView =result[i][2];
+			otherElement = result[i][3];
+		}
+		else{
+			otherView =result[i][0];
+			otherElement = result[i][1];
+		}
+       	otherIndex = getIndexOfElement(otherView, otherElement);
+		if(otherIndex != -1)
+           arr[arr.length]= otherIndex;			
+	}
+	
+	return arr;
 }
 
 function getViewElementIDs(elementId){
    var res = elementId.split('_');
    return res;	
 }
+
+function changeStyle(elementId, newStyle, elementIndex){
+  if(elementId === '')
+     elementId = visualElements[elementIndex][0] + '_' + visualElements[elementIndex][1]; 	  
+ 
+  if(newStyle === 'select'){
+	 jQuery("#" + elementId).css("fill",rect.selectfill).css("stroke",rect.selectstroke)
+	                      .css("stroke-width",rect.selectstroke_width).css("opacity","1");
+  }
+  else if(newStyle === 'highlight'){
+	 jQuery("#" + elementId).css("fill",rect.highlightfill).css("stroke",rect.highlightstroke)
+	                      .css("stroke-width",rect.highlightstroke_width).css("opacity","1");
+  }
+  else if(newStyle === 'hover'){
+	 jQuery("#" + elementId).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
+	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
+  }
+  else if(newStyle === 'regular'){
+	 jQuery("#" + elementId).css("fill",visualElements[elementIndex][2])
+	                        .css("stroke",visualElements[elementIndex][3])
+	                        .css("stroke-width",visualElements[elementIndex][4])
+							.css("opacity","visualElements[elementIndex][5]");
+  }
+
+}
+
 
 function related(itemid){
 	/*
