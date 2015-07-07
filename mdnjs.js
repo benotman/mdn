@@ -13,7 +13,7 @@
 	var flagKeepColor = false;
 	
 	
-	var rect = {
+    var rect = {
    'hoverfill': "rgba(235,131,22,1)",
    'hoverstroke': "rgba(184,16,16,1)",
    'hoverstroke_width': "1.0px",
@@ -27,9 +27,9 @@
    'selectstroke_width': "1.0px",
    };
 
-function getIndexOfElement(viewId, elemId){
-    for(var i=0; i<visualElements.length; i++){
-        if (visualElements[i][0] === viewId && visualElements[i][1] === elemId){
+function getIndexOfElement(arr, viewId, elemId){
+    for(var i=0; i<arr.length; i++){
+        if (arr[i][0] === viewId && arr[i][1] === elemId){
             return i;
         }
     }
@@ -45,7 +45,7 @@ function svgElementClicked(theElement){
     */	
 	var IDs = getViewElementIDs(theElement.id);		
 	
-	var elemIndex = getIndexOfElement(IDs[0], IDs[1]); // 
+	var elemIndex = getIndexOfElement(visualElements, IDs[0], IDs[1]); // 
 	if(elemIndex === -1) //No connections for element, never mind
 		return;
 	
@@ -54,15 +54,18 @@ function svgElementClicked(theElement){
 	var otherElements = getRelatedVisualElements(theElement.id);;
 	if(visualElements[elemIndex][6] === 0 || visualElements[elemIndex][6] === 2){ //element is unselected or highlighted
 	    changeStyle(elemId,'select',0);
-
-		//highlight others if they are not selected, increment # of incoming highlighting requests	
-        
-        for(i=0;i<otherElements.length;i++){
+		visualElements[elemIndex][6]=1; //element is selected now
+        flagKeepColor=true; // in mouseOut, do not change element style
+       
+	    for(i=0;i<otherElements.length;i++){
 			if(visualElements[otherElements[i]][6] === 0){ // related element is currently regular
 				//change to green
 				changeStyle('','highlight',otherElements[i]);
 				visualElements[otherElements[i]][6]=2; //change element to highlighted
 				visualElements[otherElements[i]][7]=1; // highlighting count
+				
+				ind = getIndexOfElement(relatedHighlightedElements,visualElements[otherElements[i]][0],visualElements[otherElements[i]][1]);
+				relatedHighlightedElements[ind][6]=true;
 			}
 			else if(visualElements[otherElements[i]][6] === 1){ // element is currently selected
 				//no change to style
@@ -73,8 +76,6 @@ function svgElementClicked(theElement){
 				visualElements[otherElements[i]][7] += 1; // highlighting count
 			}
 		}		
-		visualElements[elemIndex][6]=1; //element is selected now
-		flagKeepColor=true;
 	}
 	else{ //element is selected ->unselect
 	    if(visualElements[elemIndex][7] === 0){
@@ -84,7 +85,8 @@ function svgElementClicked(theElement){
 		   changeStyle(elemId,'regular',elemIndex);
            visualElements[elemIndex][6]=0; //element is regular now		   
 		}
-			
+		flagKeepColor= true;
+		
 		for(i=0;i<otherElements.length;i++){
 		   if(visualElements[otherElements[i]][6] === 1){  //selected -> decrease highlighted
 			   visualElements[otherElements[i]][7] -= 1;
@@ -94,13 +96,15 @@ function svgElementClicked(theElement){
 			   if(visualElements[otherElements[i]][7] === 0){
 				   visualElements[otherElements[i]][6]=0;
 				   changeStyle('','regular',otherElements[i]);
+				   
+				   ind = getIndexOfElement(relatedHighlightedElements,visualElements[otherElements[i]][0],visualElements[otherElements[i]][1]);
+				   relatedHighlightedElements[ind][6]=true;
 			   }
 		   }
-		  
              
 		}
 		
-	    flagKeepColor= true;
+	    
 	}
 			
 }
@@ -150,7 +154,8 @@ function svgElementMouseOver(theElement){
 		                                                    jQuery("#" + otherId).css("fill"),
 															jQuery("#" + otherId).css("stroke"),
 															jQuery("#" + otherId).css("stroke-width"),
-														    jQuery("#" + otherId).css("opacity")];
+														    jQuery("#" + otherId).css("opacity"),
+															false]; // flagKeepColor for this element
 																		
 		    jQuery("#" + otherId).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
 	                             .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
@@ -179,7 +184,7 @@ function getRelatedVisualElements(elementId){
 			otherView =result[i][0];
 			otherElement = result[i][1];
 		}
-       	otherIndex = getIndexOfElement(otherView, otherElement);
+       	otherIndex = getIndexOfElement(visualElements, otherView, otherElement);
 		if(otherIndex != -1)
            arr[arr.length]= otherIndex;			
 	}
@@ -250,21 +255,20 @@ function hoverCallback(response){
 */
 	
 function svgElementMouseOut(theElement){
-    if(flagKeepColor === true) // look at mouseover for details
-		return;
-	
-	if(relatedHighlightedElements.length > 0){ // element has connections so style was changed in mouseover
+    if(relatedHighlightedElements.length > 0){ // element has connections so style was changed in mouseover
 	    // restore style for this element
-		jQuery("#" + theElement.id).css("fill",CurrentHoverFill).css("stroke",CurrentHoverStroke)
-		                      .css("stroke-width",CurrentHoverStrokeWidth).css("opacity",CurrentHoverOpacity);
+		if(flagKeepColor === false) // if color was not changed in mouseclick
+		      jQuery("#" + theElement.id).css("fill",CurrentHoverFill).css("stroke",CurrentHoverStroke)
+		                                 .css("stroke-width",CurrentHoverStrokeWidth).css("opacity",CurrentHoverOpacity);
 
        //restore style 							     
        for(i=0;i<relatedHighlightedElements.length;i++){
-		   jQuery("#" + relatedHighlightedElements[i][0] + '_' + relatedHighlightedElements[i][1])
-		                                    .css("fill",relatedHighlightedElements[i][2])
-		                                    .css("stroke",relatedHighlightedElements[i][3])
-		                                    .css("stroke-width",relatedHighlightedElements[i][4])
-											.css("opacity",relatedHighlightedElements[i][5]);
+		   if(relatedHighlightedElements[i][6] === false) // if related element color was not changed in mouseclick
+		           jQuery("#" + relatedHighlightedElements[i][0] + '_' + relatedHighlightedElements[i][1])
+		                                       .css("fill",relatedHighlightedElements[i][2])
+		                                       .css("stroke",relatedHighlightedElements[i][3])
+		                                       .css("stroke-width",relatedHighlightedElements[i][4])
+							   				   .css("opacity",relatedHighlightedElements[i][5]);
 	   }
        relatedHighlightedElements.length=0;	   
 	}

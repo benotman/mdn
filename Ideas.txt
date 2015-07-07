@@ -2,6 +2,13 @@
 /*
 ************  compare ag and threat tree
 
+related highlighted elements
+
+
+// styles
+   diagram selection, hover, highlighted should be the same (to be understandable)
+
+
    send element id only
    I can have a property of the svg_id in each element
    in generic event handler, extract the svg_id when calling connections
