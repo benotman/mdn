@@ -10,6 +10,7 @@
 	var clickSelectedElements=[];
 	var clickHighilightedElements=[];
 	var visualElements = [];
+	var svgElementHasConnections=false;
 	var flagKeepColor = false;
 	var displayedDiagrams=['svg18653', 'svg2'];
 	
@@ -111,23 +112,29 @@ function svgElementClicked(theElement){
 function relatedVisualElementsInDisplayedDiagrams(viewId, elementId){
 	var result=[];
 	var relatedElements=[];
+	var view;
 	for(i=0; i < displayedDiagrams.length;i++){
+		 if(displayedDiagrams[i] === viewId)
+            continue;
+		
+		 view = displayedDiagrams[i];
 		 relatedElements = jQuery.grep(Drupal.settings.connections, function(v,i) {
-           return (v[0] === viewId && v[1] === elementId && v[2] === displayedDiagrams[i]);
+           return (v[0] === viewId && v[1] === elementId && v[2] === view);
          });
+		 
 		 for(j=0 ; j<relatedElements.length ; j++){
-			 result[result.length][0]=relatedElements[j][2];
-			 result[result.length][1]=relatedElements[j][3];
+			 result[result.length]=[relatedElements[j][2], relatedElements[j][3]];
 		 }
 
 		 relatedElements = jQuery.grep(Drupal.settings.connections, function(v,i) {
-           return (v[2] === viewId && v[3] === elementId  && v[0] === displayedDiagrams[i]);
+           return (v[2] === viewId && v[3] === elementId  && v[0] === view);
          });
 		 for(j=0 ; j<relatedElements.length ; j++){
-			 result[result.length][0]=relatedElements[j][2];
-			 result[result.length][1]=relatedElements[j][3];
-		 }		 
+			 result[result.length]=[relatedElements[j][0], relatedElements[j][1]];		 
+	     }		 
 	}
+	
+	return result;
 }
    	   
 function svgElementMouseOver(theElement){
@@ -143,7 +150,13 @@ function svgElementMouseOver(theElement){
            return (v[0] === IDs[0] && v[1] === IDs[1]) || (v[2] === IDs[0] && v[3] === IDs[1]);
     });
    
-    if(relatedElements.length > 0){ // element has connections to elements (visual[displayed and hidden diagrams] or content) -> do highlighting
+    console.log(relatedElements.length);
+	if(relatedElements.length <= 0){
+		svgElementHasConnections = false;	
+	}
+	else{ // element has connections to elements (visual in displayed and hidden diagrams, or content elements) 
+	                            	// -> do highlighting  (this indicates the element is clickable (selectable))
+		svgElementHasConnections = true;						
      	CurrentHoverFill= jQuery("#" + theElement.id).css("fill"); 
 	    CurrentHoverStroke= jQuery("#" + theElement.id).css("stroke"); 
 	    CurrentHoverStrokeWidth= jQuery("#" + theElement.id).css("stroke-width"); 
@@ -155,34 +168,21 @@ function svgElementMouseOver(theElement){
                                // this flag will equal true so mouseout will not restore element style		
 		
 		//save style for related elements in other diagrams so we can restore the style in mouseout
-		var relVisDispElems = jQuery.grep(Drupal.settings.connections, function(v,i) {
-           return (v[0] === IDs[0] && v[1] === IDs[1] && v[2] != 'cnt1') || (v[2] === IDs[0] && v[3] === IDs[1]  && v[0] != 'cnt1');
-        });
+		var relVisDispElems = relatedVisualElementsInDisplayedDiagrams(IDs[0], IDs[1]);
 		
         relatedHighlightedElements.length=0; 
 		var otherIndex;
-		for( var i = 0, len = result.length; i < len; i++ ) {
-			if(result[i][0] === IDs[0]){
-				otherView =result[i][2];
-				otherElement = result[i][3];
-				otherId = otherView + '_' + otherElement;
-			}
-			else{
-				otherView =result[i][0];
-				otherElement = result[i][1];
-				otherId = otherView + '_' + otherElement;
-			}
-
-		    relatedHighlightedElements[relatedHighlightedElements.length]= [otherView,
-			                                                                otherElement,
+		for( var i = 0, len = relVisDispElems.length; i < len; i++ ) {
+			otherId = relVisDispElems[i][0] + '_' + relVisDispElems[i][1];
+		    relatedHighlightedElements[relatedHighlightedElements.length]= [relVisDispElems[i][0],
+			                                                                relVisDispElems[i][1],
 		                                                    jQuery("#" + otherId).css("fill"),
 															jQuery("#" + otherId).css("stroke"),
 															jQuery("#" + otherId).css("stroke-width"),
 														    jQuery("#" + otherId).css("opacity"),
 															false]; // flagKeepColor for this element
 																		
-		    jQuery("#" + otherId).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
-	                             .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
+		    changeStyle(otherId, 'hover',0);
 		} // end for
 		
     } // end element has connections
@@ -241,7 +241,7 @@ function changeStyle(elementId, newStyle, elementIndex){
 	 jQuery("#" + elementId).css("fill",visualElements[elementIndex][2])
 	                        .css("stroke",visualElements[elementIndex][3])
 	                        .css("stroke-width",visualElements[elementIndex][4])
-							.css("opacity","visualElements[elementIndex][5]");
+							.css("opacity",visualElements[elementIndex][5]);
   }
 
 }
@@ -279,12 +279,14 @@ function hoverCallback(response){
 */
 	
 function svgElementMouseOut(theElement){
-    if(relatedHighlightedElements.length > 0){ // element has connections so style was changed in mouseover
-	    // restore style for this element
-		if(flagKeepColor === false) // if color was not changed in mouseclick
+	if(svgElementHasConnections === false)
+		return;
+
+	if(flagKeepColor === false) // if color was not changed in mouseclick
 		      jQuery("#" + theElement.id).css("fill",CurrentHoverFill).css("stroke",CurrentHoverStroke)
 		                                 .css("stroke-width",CurrentHoverStrokeWidth).css("opacity",CurrentHoverOpacity);
 
+    if(relatedHighlightedElements.length > 0){ // element has connections in displayed diagrams
        //restore style 							     
        for(i=0;i<relatedHighlightedElements.length;i++){
 		   if(relatedHighlightedElements[i][6] === false) // if related element color was not changed in mouseclick
