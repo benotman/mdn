@@ -2,7 +2,62 @@
 /*
 ************  compare ag and threat tree
 
-related highlighted elements
+related_highlighted_elements
+  changed or not
+
+hover 
+  hover related vosual elements
+
+select
+  element related to visual element and content elements -> select
+  related to visual elements only -> select so a user can see related elements in other diagrams
+  related to content elements only -> yes, so a user can see retrieve content elements and see false (no )   
+  
+  element with no connections -> discard
+  
+  element with connections
+    allow hover
+	   current element is ok (since element is already displayed)
+	   related elements in displayed diagrams -> ok
+	   related elements in undisplayed diagrams -> discard
+	   
+	   so highlightedelements array contain only elements in displayed diagrams
+	allow selection
+
+***Diagrams ***	
+- We have several diagrams
+- we start with on-load diagrams
+--- we have connections array for onload diagrams + content (CHANGE to ALL Diagrams)
+--- we have list of visual elements for onload diagrams (CHANGE to ALL Diagrams) 
+--- we need to have array_Current_Diagrams
+
+in mouseHover
+   change to hoverStyle if element has connections to anything (content, displayed diagrams, hidden diagrams)
+      This to indicate the element is clickable
+   retrieve connections to visual elements in displayed diagrams
+   
+in click
+   select element if it has connections to anything (basically if an element is hoverable it is selectable)
+   update the list of visual elements 
+
+When displaying a hidden diagram
+   check if there is highlighted elements exist -> change their style
+When hiding a diagram current element styles are kept in the visual elements array
+   the diagram will probably be removed from the html
+when redisplaying a diagram update element styles according to the list of visual elements
+
+   
+
+------ connections to visual elements to currently displayed diagrams  
+- user can load other diagrams any time
+-  we add  
+	
+diagrams
+  selection window
+  load diagram, load connections
+  
+  
+    
 
 
 // styles
