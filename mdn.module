@@ -153,19 +153,28 @@ function get_mdn() {
           // Commented for testing, uncomment for final version
 		 // $rootNode->setAttribute("id", $svgId);
 		  $rootNode->setAttribute("prepared", 'yes');
-          		  
+          
+ 		  
 		  $elem_count =1;
           $elems = $doc->getElementsByTagName('path');
           foreach ($elems as $elem) {
-             $elem->setAttribute("id", $svgId . '_' . $elem_count);
-			 $elem->setAttribute("OriginalStyle", $elem->getAttribute("style"));
+			 $elem_id =  $elem->getAttribute("id");
+			 if($elem_id != '') 
+                $elem->setAttribute("id", $svgId . '_' . $elem_id);
+             else	 
+		        $elem->setAttribute("id", $svgId . '_' . $elem_count);
+			
 	         $elem_count++;
           }
 		  
           $elems = $doc->getElementsByTagName('ellipse');
           foreach ($elems as $elem) {
-             $elem->setAttribute("id", $svgId . '_' . $elem_count);
-			 $elem->setAttribute("OriginalStyle", $elem->getAttribute("style"));
+			 $elem_id =  $elem->getAttribute("id");
+			 if($elem_id != '') 
+                $elem->setAttribute("id", $svgId . '_' . $elem_id);
+             else	 
+		        $elem->setAttribute("id", $svgId . '_' . $elem_count);
+
 	         $elem_count++;
           }
 		  
@@ -190,8 +199,10 @@ function get_mdn() {
    }
 
    $settingsArr=array(
-                      'connections' => get_connections(),
-					  'visualElements' => $visual_element_list);
+                      'connections' => get_connections(), 
+					  'visualElements' => $visual_element_list); 
+					  // connections -> all connections
+					  //Visaul elements -> all visual elements having connections to other elements
    drupal_add_js($settingsArr, 'setting');
    
    return  $resultHtml;  
@@ -265,11 +276,12 @@ return $arr;
 function get_visual_elements_with_connections($diagramId){
    
    $result = db_query("select view1 as viewid, element1 as elementid from drupalConnections "
-                       . " where view2 != 'cnt1' and view1 != 'cnt1' and view1 =:diagramid group by viewid,elementid "
+                       . " where view1 =:diagramid group by viewid,elementid "	
 				   . " union "
                    . " select view2 as viewid, element2 as elementid from drupalConnections "
-					   . " where view1 != 'cnt1' and view2 != 'cnt1' and view2 =:diagramid group by viewid,elementid",
+					   . " where view2 =:diagramid group by viewid,elementid",
 					   array('diagramid' => $diagramId));
+				//. " where view2 != 'cnt1' and view1 =:diagramid group by viewid,elementid "	   
     $count=0;   
 	$arr=array();
     foreach ($result as $record) {

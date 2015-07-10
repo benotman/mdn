@@ -1,6 +1,12 @@
 
+
+
+
 /*
-************  compare ag and threat tree
+************  To DO List
+- Modify Document.ready to load orginal style for only displayed diagrams
+-- Whenever we load hidden diagram for the first time, we save original style then we update element styles according 
+   to visual elements array
 
 related_highlighted_elements
   changed or not

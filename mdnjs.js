@@ -9,10 +9,12 @@
 	
 	var clickSelectedElements=[];
 	var clickHighilightedElements=[];
-	var visualElements = [];
+	var visualElements = []; // All visual elements in all diagram; includes elements having at least one connection(to visual or content element)
+                             // This is a key data structure where we keep track of element orignial style, status (regular, selected, highlighted)
+							 // , and number of highlighting requests for the element (made by other elements)
 	var svgElementHasConnections=false;
 	var flagKeepColor = false;
-	var displayedDiagrams=['svg18653', 'svg2'];
+	var displayedDiagrams=['svg1', 'svg2'];
 	
     var rect = {
    'hoverfill': "rgba(235,131,22,1)",
@@ -43,21 +45,26 @@ function svgElementClicked(theElement){
 	/*
        if selected or not
     */	
+	if(svgElementHasConnections === false) // variable is set in mouseover. svg element has no connections 
+		return;                            // to visual nor content elements -> element is not clickable(selectable)
+	
 	var IDs = getViewElementIDs(theElement.id);		
 	
 	var elemIndex = getIndexOfElement(visualElements, IDs[0], IDs[1]); // 
-	if(elemIndex === -1) //No connections for element, never mind
+	if(elemIndex === -1) //element must exist in visualElements since svgElementHasConnections = true
 		return;
 	
 	var elemId = visualElements[elemIndex][0] + '_' + visualElements[elemIndex][1];
 	
-	var otherElements = getRelatedVisualElements(theElement.id);;
+	var otherElements = getRelatedVisualElements(theElement.id); // in displayed or hidden diagrams
+	//be aware that otherElements may be empty of the current element is only related to content elements
+	
 	if(visualElements[elemIndex][6] === 0 || visualElements[elemIndex][6] === 2){ //element is unselected or highlighted
 	    changeStyle(elemId,'select',0);
 		visualElements[elemIndex][6]=1; //element is selected now
         flagKeepColor=true; // in mouseOut, do not change element style
        
-	    for(i=0;i<otherElements.length;i++){
+	    for(i=0;i<otherElements.length;i++){ 
 			if(visualElements[otherElements[i]][6] === 0){ // related element is currently regular
 				//change to green
 				changeStyle('','highlight',otherElements[i]);
@@ -65,7 +72,7 @@ function svgElementClicked(theElement){
 				visualElements[otherElements[i]][7]=1; // highlighting count
 				
 				ind = getIndexOfElement(relatedHighlightedElements,visualElements[otherElements[i]][0],visualElements[otherElements[i]][1]);
-				relatedHighlightedElements[ind][6]=true;
+				relatedHighlightedElements[ind][6]=true; // flagKeepColor for this element so in mouseout it is not changed back to its style before the mouse entered the element
 			}
 			else if(visualElements[otherElements[i]][6] === 1){ // element is currently selected
 				//no change to style
@@ -80,10 +87,10 @@ function svgElementClicked(theElement){
 	else{ //element is selected ->unselect
 	    if(visualElements[elemIndex][7] === 0){ // current element highlight count = 0 --> change to regular
 		   changeStyle(elemId,'regular',elemIndex); 	
-		   visualElements[elemIndex][6]=0; //element is highlighted now		   
+		   visualElements[elemIndex][6]=0; //element is regular now		   
 		}else{ // current element highlight count > 0 --> change to highlighted
 		   changeStyle(elemId,'highlight',elemIndex);
-           visualElements[elemIndex][6]=2; //element is regular now		   
+           visualElements[elemIndex][6]=2; //element is highlighted now		   
 		}
 		flagKeepColor= true;
 		
@@ -98,7 +105,7 @@ function svgElementClicked(theElement){
 				      changeStyle('','regular',otherElements[i]);
 				   
 				      ind = getIndexOfElement(relatedHighlightedElements,visualElements[otherElements[i]][0],visualElements[otherElements[i]][1]);
-				      relatedHighlightedElements[ind][6]=true;
+				      relatedHighlightedElements[ind][6]=true; // flagKeepColor for this element so in mouseout it is not changed back to its style before the mouse entered the element
 			       }
 		   }
              
@@ -136,7 +143,13 @@ function relatedVisualElementsInDisplayedDiagrams(viewId, elementId){
 	
 	return result;
 }
-   	   
+/*
+svgElementHasConnections = false
+  exit mouseover
+
+svgElementHasConnections = true
+    
+*/   	   
 function svgElementMouseOver(theElement){
 
    /* an old way of retrieving connections using ajax
@@ -146,11 +159,11 @@ function svgElementMouseOver(theElement){
    
     var IDs = getViewElementIDs(theElement.id);						  
 
-    var relatedElements = jQuery.grep(Drupal.settings.connections, function(v,i) {
-           return (v[0] === IDs[0] && v[1] === IDs[1]) || (v[2] === IDs[0] && v[3] === IDs[1]);
+    var relatedElements = jQuery.grep(visualElements, function(v,i) { // if element is in visualElements then this element has 
+           return (v[0] === IDs[0] && v[1] === IDs[1]);              // we make it hoverable and clickable   
     });
    
-    console.log(relatedElements.length);
+    //console.log(relatedElements.length);
 	if(relatedElements.length <= 0){
 		svgElementHasConnections = false;	
 	}
@@ -167,11 +180,11 @@ function svgElementMouseOver(theElement){
         flagKeepColor = false; // after mouseover, if mouseclick is fired and element style is changed
                                // this flag will equal true so mouseout will not restore element style		
 		
-		//save style for related elements in other diagrams so we can restore the style in mouseout
+		//search for related visual elements in displayed diagrams
 		var relVisDispElems = relatedVisualElementsInDisplayedDiagrams(IDs[0], IDs[1]);
 		
+		//save style for related elements in other diagrams so we can restore the style in mouseout
         relatedHighlightedElements.length=0; 
-		var otherIndex;
 		for( var i = 0, len = relVisDispElems.length; i < len; i++ ) {
 			otherId = relVisDispElems[i][0] + '_' + relVisDispElems[i][1];
 		    relatedHighlightedElements[relatedHighlightedElements.length]= [relVisDispElems[i][0],
@@ -347,44 +360,6 @@ function sendClickToParentDocument(evt)
 	//  else
 		//  alert("Error: Function svgElementMouseOut does not exist");
 	}	
-/*   
-   function svgElementMouseOver(theElement, viewid)
-	{
-	 if(viewid==="TreeView"){
-		}
-	else{
-    	var item2 =jQuery("#" + theElement.id).find('ellipse, rect, path')[0];
-	      var item = jQuery(item2);
-	      	jQuery("#" + theElement.id).find('ellipse, rect, path').css("fill",rect.hoverfill)
-			                                                  .css("stroke",rect.hoverstroke)
-															  .css("stroke-width",rect.hoverstroke_width);
-		}
-	}
-	  
-	  //console.log("hello");
-  	  var arr = document.getElementsByTagName("g");
-		for (var i = 0; i < arr.length; i++) { 
-		   //arr[i].addEventListener("click", sendClickToParentDocument, false);
-		    arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
-		   //arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
-		   //arr[i].addEventListener("mouseout", sendClickToParentDocument2, false);
-		}
-		
-
-		function sendMouseOverToParentDocument(evt)
-		{
-			// SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
-			var target = evt.currentTarget;
-			if(target.correspondingUseElement)
-				target = target.correspondingUseElement;
-      
-      // call a method in the parent document if it exists
-          svgElementMouseOver(target,"AGView");
-			
-		}
-		*/
-		
-//})(jQuery);
 
 jQuery(document).ready(function($) {
    
@@ -417,9 +392,9 @@ jQuery(document).ready(function($) {
 		                   jQuery(elemId).css("stroke"),
 		                   jQuery(elemId).css("stroke-width"),
 		                   jQuery(elemId).css("opacity"),
-		                   0,0]; // [0] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
+		                   0,0]; // [6] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
 						         // [7] number of highlighting requests made by other elements
-        console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
+       // console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
 	 }
 	 
 	 
