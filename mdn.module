@@ -60,9 +60,6 @@ function mdn_block_view($delta = '') {
 }
 
 function get_mdn() {
- // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery-1.11.1.min.js');
- // drupal_add_js(drupal_get_path('module', 'mdn') .'/js/jquery.contextMenu.js');
- 
   drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
  
   $diagram_data = array();
