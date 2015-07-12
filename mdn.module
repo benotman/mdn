@@ -61,6 +61,7 @@ function mdn_block_view($delta = '') {
 
 function get_mdn() {
   drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
+  drupal_add_css(drupal_get_path('module', 'mdn') . '/mdn.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
  
   $diagram_data = array();
  
@@ -112,7 +113,13 @@ function get_mdn() {
    $counter=1;
    $visual_element_list_this_diagram = array();
    $visual_element_list = array();
-   $resultHtml='';
+   $resultHtml='<div id="mdnButtonContainer">'
+                . '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Clear Selections</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Full Screen</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Select Diagrams</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Layout</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Related Content</button>'
+				.'</div>';
    $newContents='';
    $nodes = entity_load('node', array_keys($result['node']));
    
@@ -185,7 +192,7 @@ function get_mdn() {
 		  $newContents = $doc->saveXML(); 
 	  }
 	  
-     $resultHtml = $resultHtml . '<br>' . $newContents;
+     $resultHtml = $resultHtml . '<div class="svgContainer">' . $newContents . '</div>';
 	 //$diagram_data[$svgId]['hide']= $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
 	 
 	 $visual_element_list_this_diagram=get_visual_elements_with_connections($svgId);

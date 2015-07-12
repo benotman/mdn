@@ -1,6 +1,27 @@
 
 
+Plan 
+Play with height: try to insure site is good for some window sizes
+- 50%
+- 
 
+- buttons: clear, full screen, related content, diagram browser, layout 
+
+diagram browser: inline blocks 
+
+- Connector: 
+two sides
+button: select each side
+- each side has to be different
+- side is a diagram or content searcher
+connect by drag
+button: connect (one selection in one side and multiple on the other)
+button: delete connection
+-- select one element in one side and one or more in the other 
+-- if elements are connected select them
+-- delete will be enabled
+-- enable/disable zooming and panning
+    
 
 /*
 ************  To DO List

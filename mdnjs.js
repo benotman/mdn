@@ -30,6 +30,19 @@
    'selectstroke_width': "1.0px",
    };
 
+function clearSelections(){
+	var i;
+	for(i=0;i<visualElements.length;i++){
+		if(visualElements[i][6] === 1 || visualElements[i][6] === 2){
+           	 jQuery("#" + visualElements[i][0] + '_' + visualElements[i][1])
+			              .css("fill",visualElements[i][2]).css("stroke",visualElements[i][3])
+	                      .css("stroke-width",visualElements[i][4]).css("opacity",visualElements[i][5]);
+		}
+		visualElements[i][6]=0;
+		visualElements[i][7]=0;
+	}
+}   
+   
 function getIndexOfElement(arr, viewId, elemId){
     for(var i=0; i<arr.length; i++){
         if (arr[i][0] === viewId && arr[i][1] === elemId){
@@ -392,7 +405,7 @@ jQuery(document).ready(function($) {
 		                   jQuery(elemId).css("stroke"),
 		                   jQuery(elemId).css("stroke-width"),
 		                   jQuery(elemId).css("opacity"),
-		                   0,0]; // [6] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
+		                   0,0]; // [0] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
 						         // [7] number of highlighting requests made by other elements
        // console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
 	 }
