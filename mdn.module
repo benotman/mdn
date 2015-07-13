@@ -61,6 +61,7 @@ function mdn_block_view($delta = '') {
 
 function get_mdn() {
   drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
+  drupal_add_js(drupal_get_path('module', 'mdn') . '/jquery.simplemodal.1.4.4.min.js');
   drupal_add_css(drupal_get_path('module', 'mdn') . '/mdn.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
  
   $diagram_data = array();
@@ -116,7 +117,7 @@ function get_mdn() {
    $resultHtml='<div id="mdnButtonContainer">'
                 . '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Clear Selections</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Full Screen</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Select Diagrams</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Layout</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Related Content</button>'
 				.'</div>';
@@ -202,6 +203,34 @@ function get_mdn() {
 	    break;
    }
 
+   $diagramBrowser = '<div id="diagramBrowser" style="display:none">'
+   . '<h2>Sample Data</h2>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<div class="box">test</div>'
+   . '<p>You can press ESC to close this dialog or click <a href="#" class="simplemodal-close">close</a>.</p>'
+   . '</div>';
+   
+   $resultHtml = $resultHtml . $diagramBrowser;
+   
    $settingsArr=array(
                       'connections' => get_connections(), 
 					  'visualElements' => $visual_element_list); 

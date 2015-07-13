@@ -42,6 +42,13 @@ function clearSelections(){
 		visualElements[i][7]=0;
 	}
 }   
+
+function displayDiagramBrowser(){
+	jQuery("#diagramBrowser").modal({
+		maxWidth:1000,
+		maxHeight:500
+	});
+}
    
 function getIndexOfElement(arr, viewId, elemId){
     for(var i=0; i<arr.length; i++){

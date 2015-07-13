@@ -6,6 +6,18 @@ Play with height: try to insure site is good for some window sizes
 - 
 
 - buttons: clear, full screen, related content, diagram browser, layout 
+diagram browser ideas:
+- inline images selector
+- get all thumbnails of all diagrams
+- display inline with scroll bar (vertical) how?
+--- display titles beneath
+- allow select / deselect
+- ok / cancel
+
+on return
+change current diagrams
+highlight new diagrams according to visual elements
+
 
 diagram browser: inline blocks 
 
