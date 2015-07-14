@@ -4,6 +4,19 @@ Plan
 Play with height: try to insure site is good for some window sizes
 - 50%
 - 
+SELECT MIN( id ) AS minId, user_id, action_time, page_section, sub_section, 
+ACTION FROM  `user_clean` 
+GROUP BY user_id, action_time, page_section, sub_section
+ORDER BY minId
+
+1181
+1234
+2006
+2664
+4468
+4494
+7509
+8979
 
 - buttons: clear, full screen, related content, diagram browser, layout 
 diagram browser ideas:
