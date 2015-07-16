@@ -43,6 +43,25 @@ function clearSelections(){
 	}
 }   
 
+function heatmap(){
+
+  for (var i=0;i<Drupal.settings.heatmap.length;i++){
+	  
+	  var value = ((Drupal.settings.heatmap[i][1] - 7) / (124 - 7));
+	  var aR = 255;   var aG = 255; var aB=255;  // RGB for our 1st color (blue in this case).
+      var bR = 0; var bG = 0; var bB=0;    // RGB for our 2nd color (red in this case).
+ 
+      var red   = (bR - aR) * value + aR;      // Evaluated as -255*value + 255.
+      var green = (bG - aG) * value + aG;      // Evaluates as 0.
+      var blue  = (bB - aB) * value + aB;      // Evaluates as 255*value + 0.
+	  console.log(Math.round(red) + ' ' + Math.round(green) + ' ' + Math.round(blue));
+	  var newRGB = 'rgba(' + Math.round(red) + ',' + Math.round(green) + ',' + Math.round(blue) + ',1)';
+	  //var newRGB = 'rgba(' + Math.round(red) + ',' + 0 + ',' + 0 + ',1)';
+	   jQuery("#" + "svg1_" + Drupal.settings.heatmap[i][0]).css("fill",newRGB);
+  }
+	
+}
+
 function displayDiagramBrowser(){
 	jQuery("#diagramBrowser").modal({
 		maxWidth:1000,

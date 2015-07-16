@@ -10,7 +10,6 @@ GROUP BY user_id, action_time, page_section, sub_section
 ORDER BY minId
 
 1181
-1234
 2006
 2664
 4468

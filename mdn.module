@@ -116,15 +116,14 @@ function get_mdn() {
    $visual_element_list = array();
    $resultHtml='<div id="mdnButtonContainer">'
                 . '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Clear Selections</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Full Screen</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="heatmap();">Full Screen</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Layout</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Related Content</button>'
 				.'</div>';
    $newContents='';
    
-   $diagramBrowser = '<div id="diagramBrowser" style="display:none">'
-   . '<h2>Sample Data</h2>';
+   $diagramBrowser = '<div id="diagramBrowser" style="display:none">';
    $nodes = entity_load('node', array_keys($result['node']));
    
    
@@ -137,7 +136,9 @@ function get_mdn() {
 	  $file = file_load($fid); 
 	  $aa=file_create_url($file->uri);
       $diagramBrowser = $diagramBrowser 
-	           . '<div class="box"><img src="' . file_create_url($file->uri) . '"></div>';
+	           . '<div class="box"><img src="' . file_create_url($file->uri) . '">' 
+			   . '<p>' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] .'</p>'
+			   . '</div>';
     
 	   
       $fid = $node->field_svg_file[LANGUAGE_NONE][0]['fid'];
@@ -215,11 +216,11 @@ function get_mdn() {
    }
 
    $diagramBrowser = $diagramBrowser 
-   . '<div class="box"><img src="' . $aa . '"></div>'
+   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
  . '<div class="box"><img src="' . $aa . '"></div>'
+    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
     . '<div class="box"><img src="' . $aa . '"></div>'
-    . '<div class="box"><img src="' . $aa . '"></div>'
-    . '<div class="box"><img src="' . $aa . '"></div>'
+    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
    . '<div class="box"><img src="' . $aa . '"></div>'
    . '<div class="box"><img src="' . $aa . '"></div>'
    . '<div class="box"><img src="' . $aa . '"></div>'
@@ -233,7 +234,9 @@ function get_mdn() {
    
    $settingsArr=array(
                       'connections' => get_connections(), 
-					  'visualElements' => $visual_element_list); 
+					  'visualElements' => $visual_element_list,
+					  'heatmap' => get_heatmap()); // data for research purposes, will be removed
+					  
 					  // connections -> all connections
 					  //Visaul elements -> all visual elements having connections to other elements
    drupal_add_js($settingsArr, 'setting');
@@ -288,6 +291,20 @@ function get_mdn() {
 	
   //return  "<div id='mdn'><p>hello</p></div>";
   
+}
+
+// function for research purposes, will be removed
+function get_heatmap(){
+	$result = db_query("SELECT * FROM heatmapFirstSessionAllUsersHoverCount");
+    $count=0;   
+	$arr=array();
+    foreach ($result as $record) {
+	  $arr[$count][0] = $record->sub_section;
+	  $arr[$count][1] = $record->cnt;
+    $count++;	 
+	}
+	
+return $arr;
 }
 
 function get_connections(){
