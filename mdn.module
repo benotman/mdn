@@ -123,7 +123,12 @@ function get_mdn() {
 				.'</div>';
    $newContents='';
    
-   $diagramBrowser = '<div id="diagramBrowser" style="display:none">';
+   $diagramBrowser = '<div id="diagramBrowser" style="display:none">'
+                       . '<div id="diagramBrowserButtons">' 
+					   . '<p id="diagramBrowserComment">Select/Deselect diagrams to view in the main page</p>'
+					   . '<button id="diagramBrowserOK" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserOK();">OK</button>'
+					   . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
+					   . '</div>';
    $nodes = entity_load('node', array_keys($result['node']));
    
    
@@ -131,16 +136,7 @@ function get_mdn() {
   // return $res;
    $aa='';
    foreach ($nodes as $node) {
-	  $fid = $node->field_thumbnail[LANGUAGE_NONE][0]['fid'];
-	  //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
-	  $file = file_load($fid); 
-	  $aa=file_create_url($file->uri);
-      $diagramBrowser = $diagramBrowser 
-	           . '<div class="box"><img src="' . file_create_url($file->uri) . '">' 
-			   . '<p>' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] .'</p>'
-			   . '</div>';
-    
-	   
+  
       $fid = $node->field_svg_file[LANGUAGE_NONE][0]['fid'];
 	  //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
 	  $file = file_load($fid);
@@ -148,12 +144,24 @@ function get_mdn() {
       $doc = new DOMDocument();
       $doc->loadXML($contents);
 
-      $rootNode = $doc->documentElement;
-	  $prepared='';
+	  $rootNode = $doc->documentElement;
+	  $svgId = $rootNode->getAttribute("id");
+
+	  $fidThumbnail = $node->field_thumbnail[LANGUAGE_NONE][0]['fid'];
+	  //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
+	  $fileThumbnail = file_load($fidThumbnail); 
+	  $aa=file_create_url($fileThumbnail->uri);
+      $diagramBrowser = $diagramBrowser 
+	           . '<div class="box"><img src="' . $aa . '">' 
+			   . '<input type="checkbox" id="checkbox_' . $counter . '" svgId="' . $svgId . '">'
+               . '<label for="checkbox_' . $counter . '">' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] . '</label>'
+			   . '</div>';
+
+
+      $prepared='';
 	  
 	  $prepared = $rootNode->getAttribute("prepared");
-      $svgId = $rootNode->getAttribute("id");
-	  $rootNode->setAttribute("hide_elements",$node->field_hide_svg_elements[LANGUAGE_NONE][0]['value']); // try to use drupal_add_js settings instead
+      $rootNode->setAttribute("hide_elements",$node->field_hide_svg_elements[LANGUAGE_NONE][0]['value']); // try to use drupal_add_js settings instead
 	  
 	  if($prepared === ''){ // SVG file is loaded for the first time, MDN prepares svg file by assigning unique ids for the svg file and all elements
 
@@ -217,16 +225,16 @@ function get_mdn() {
 
    $diagramBrowser = $diagramBrowser 
    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
- . '<div class="box"><img src="' . $aa . '"></div>'
+ . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
     . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-    . '<div class="box"><img src="' . $aa . '"></div>'
     . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-   . '<div class="box"><img src="' . $aa . '"></div>'
-   . '<div class="box"><img src="' . $aa . '"></div>'
-   . '<div class="box"><img src="' . $aa . '"></div>'
-   . '<div class="box"><img src="' . $aa . '"></div>'
-   . '<div class="box"><img src="' . $aa . '"></div>'
-   . '<div class="box"><img src="' . $aa . '"></div>'
+    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
+   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
+   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
+   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
+   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
+   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
+   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
    . '<p>You can press ESC to close this dialog or click <a href="#" class="simplemodal-close">close</a>.</p>'
    . '</div>';
    

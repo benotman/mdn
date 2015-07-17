@@ -1,5 +1,3 @@
-
-
 Plan 
 Play with height: try to insure site is good for some window sizes
 - 50%
@@ -16,6 +14,9 @@ ORDER BY minId
 4494
 7509
 8979
+
+4:35 -> 6:00
+6:30->8:25
 
 - buttons: clear, full screen, related content, diagram browser, layout 
 diagram browser ideas:

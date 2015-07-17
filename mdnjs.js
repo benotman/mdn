@@ -43,6 +43,21 @@ function clearSelections(){
 	}
 }   
 
+function DiagramBrowserOK(){
+	/*
+	 create a list of diagrams
+	 check if selected is equal to layout 
+	*/
+	var count=0;
+	var diagramArr =[];
+	for (var i=0; i<5;i++){ // edit: change 5 to the number of diagrams loaded in the diagram selector
+		if(jQuery('#' + 'checkbox_' + i).is(':checked')){
+			count +=1;
+			diagramArr[diagramArr.length] = jQuery('#' + 'checkbox_' + i).attr("svgID");
+		}
+	}
+}
+
 function heatmap(){
 
   for (var i=0;i<Drupal.settings.heatmap.length;i++){
