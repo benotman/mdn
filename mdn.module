@@ -59,112 +59,23 @@ function mdn_block_view($delta = '') {
  return $block;
 }
 
-function get_mdn() {
-  drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
-  drupal_add_js(drupal_get_path('module', 'mdn') . '/jquery.simplemodal.1.4.4.min.js');
-  drupal_add_css(drupal_get_path('module', 'mdn') . '/mdn.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
- 
-  $diagram_data = array();
- 
-  /*
-     Check the default layout (one, two, three, or four diagrams) (two for now)
-	 Retrieve the required # of default SVGs (top 1,2,3, or 4) (SVG markup in DOM and SVG record in the database)
-	 iterate over default SVGs (the first few)
-	    if current svg is not curated before
-		   load, embed, change ids
-		   
-	       if SVG_hide_elements = true // SVG elements are on top of image 
-  		      change css to hide elements
-	     
-        content = content . current SVG
-		
-		embed the default SVGs in the main mdn html 
-	    two divs for now 
-		required buttons
-	    load any required CSS (maybe for diagram browser)
+function get_and_prepare_diagram($node){
 	 
-	-----------------------
-    I need following configuration info.
-	- default layout
-	
-	For every SVG
-	- default SVG true/false 
-	- hide elements true/false 
-    - highlight color
-    - select color
-    - hover color	
-  */
-  
-    
-   $default_layout = 2; // default number of diagrams to display
-   
-   $criteria = '1';  //Retrieve diagrams that have the display_on_load attribute = 1
-   $query = new EntityFieldQuery();
-   $query->entityCondition('entity_type', 'node')
-	 ->entityCondition('bundle', 'diagram')                    
-	 ->fieldCondition('field_display_on_load', 'value', $criteria, '=');
-	// ->fieldOrderBy('field_display_on_load', 'entity_id', 'ASC'); check this to load the first few diagrams 
-    
-   $result = $query->execute();
-   if (empty($result['node'])) {
-	   	return '<p>No diagrams found</p>';
-      // $entities = entity_load($entity_type, array_keys($result[$entity_type]));
-   }
-
-   $counter=1;
-   $visual_element_list_this_diagram = array();
-   $visual_element_list = array();
-   $resultHtml='<div id="mdnButtonContainer">'
-                . '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Clear Selections</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="heatmap();">Full Screen</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Layout</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Related Content</button>'
-				.'</div>';
-   $newContents='';
-   
-   $diagramBrowser = '<div id="diagramBrowser" style="display:none">'
-                       . '<div id="diagramBrowserButtons">' 
-					   . '<p id="diagramBrowserComment">Select/Deselect diagrams to view in the main page</p>'
-					   . '<button id="diagramBrowserOK" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserOK();">OK</button>'
-					   . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
-					   . '</div>';
-   $nodes = entity_load('node', array_keys($result['node']));
-   
-   
-  // $res = print_r($nodes, true);
-  // return $res;
-   $aa='';
-   foreach ($nodes as $node) {
-  
-      $fid = $node->field_svg_file[LANGUAGE_NONE][0]['fid'];
-	  //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
+	  $fid = $node->field_svg_file[LANGUAGE_NONE][0]['fid'];
 	  $file = file_load($fid);
       $contents = file_get_contents($file->uri);
       $doc = new DOMDocument();
       $doc->loadXML($contents);
 
 	  $rootNode = $doc->documentElement;
-	  $svgId = $rootNode->getAttribute("id");
-
-	  $fidThumbnail = $node->field_thumbnail[LANGUAGE_NONE][0]['fid'];
-	  //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
-	  $fileThumbnail = file_load($fidThumbnail); 
-	  $aa=file_create_url($fileThumbnail->uri);
-      $diagramBrowser = $diagramBrowser 
-	           . '<div class="box"><img src="' . $aa . '">' 
-			   . '<input type="checkbox" id="checkbox_' . $counter . '" svgId="' . $svgId . '">'
-               . '<label for="checkbox_' . $counter . '">' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] . '</label>'
-			   . '</div>';
-
-
-      $prepared='';
-	  
-	  $prepared = $rootNode->getAttribute("prepared");
       $rootNode->setAttribute("hide_elements",$node->field_hide_svg_elements[LANGUAGE_NONE][0]['value']); // try to use drupal_add_js settings instead
 	  
+      $prepared='';
+	  $prepared = $rootNode->getAttribute("prepared");
+
 	  if($prepared === ''){ // SVG file is loaded for the first time, MDN prepares svg file by assigning unique ids for the svg file and all elements
 
+	    // The following 5 line no longer needed, code is included in mdnjs file
         //  $scriptNode = $doc->createElement("script");
         //  $rootNode->appendChild($scriptNode);
 	     // $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs2.js'); 
@@ -172,18 +83,16 @@ function get_mdn() {
 		 // $scriptNode->appendChild($cdata);
  		
 		  $uniqueId = get_unique_svg_number();
-		  //$svgId = 'svg' . $uniqueId; 
-          $svgId = $rootNode->getAttribute("id");
-		  
-          // Commented for testing, uncomment for final version
+		  //$svgId = 'svg' . $uniqueId; // commented for testing, uncomment for final version 
 		 // $rootNode->setAttribute("id", $svgId);
+          $svgId = $rootNode->getAttribute("id"); // remove in final version
+
 		  $rootNode->setAttribute("prepared", 'yes');
           
- 		  
 		  $elem_count =1;
           $elems = $doc->getElementsByTagName('path');
           foreach ($elems as $elem) {
-			 $elem_id =  $elem->getAttribute("id");
+			 $elem_id =  $elem->getAttribute("id"); 
 			 if($elem_id != '') 
                 $elem->setAttribute("id", $svgId . '_' . $elem_id);
              else	 
@@ -203,7 +112,6 @@ function get_mdn() {
 	         $elem_count++;
           }
 		  
-		  
 		  $newContents = $doc->saveXML();
 		  // Commented for testing, uncomment for final version
           file_put_contents($file->uri, $newContents);
@@ -212,15 +120,68 @@ function get_mdn() {
 	  else{ // svg file is prepared before
 		  $newContents = $doc->saveXML(); 
 	  }
-	  
-     $resultHtml = $resultHtml . '<div class="svgContainer">' . $newContents . '</div>';
-	 //$diagram_data[$svgId]['hide']= $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
-	 
-	 $visual_element_list_this_diagram=get_visual_elements_with_connections($svgId);
-	 $visual_element_list = array_merge($visual_element_list, $visual_element_list_this_diagram);
+
+	  return $newContents;
+}
+
+function get_mdn() {
+
+  drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
+  drupal_add_js(drupal_get_path('module', 'mdn') . '/jquery.simplemodal.1.4.4.min.js');
+  drupal_add_css(drupal_get_path('module', 'mdn') . '/mdn.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
+ 
+  $default_layout = 2; // default number of diagrams to display
+
+  $resultHtml='<div id="mdnButtonContainer">'
+                . '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Clear Selections</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="heatmap();">Full Screen</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Layout</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Related Content</button>'
+				.'</div>';
+   
+  $diagramBrowser = '<div id="diagramBrowser" style="display:none">'
+                       . '<div id="diagramBrowserButtons">' 
+					   . '<p id="diagramBrowserComment">Select/Deselect diagrams to view in the main page</p>'
+					   . '<button id="diagramBrowserOK" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserOK();">OK</button>'
+					   . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
+					   . '</div>';
+
+   $query = new EntityFieldQuery();
+   $query->entityCondition('entity_type', 'node')
+	 ->entityCondition('bundle', 'diagram');                    
+	// ->fieldCondition('field_display_on_load', 'value', 1, '=');
+	// ->fieldOrderBy('field_display_on_load', 'entity_id', 'ASC'); check this to load the first few diagrams 
+    
+   $result = $query->execute();
+   if (empty($result['node'])) {
+	   	return '<p>No diagrams found</p>';
+      // $entities = entity_load($entity_type, array_keys($result[$entity_type]));
+   }
+
+   $nodes = entity_load('node', array_keys($result['node']));
+   $counter=0;   
+  // $res = print_r($nodes, true);
+  // return $res;
+   $aa='';
+   foreach ($nodes as $node) {
+	  $fidThumbnail = $node->field_thumbnail[LANGUAGE_NONE][0]['fid'];
+	  //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
+	  $fileThumbnail = file_load($fidThumbnail); 
+	  $aa=file_create_url($fileThumbnail->uri);
+      $diagramBrowser = $diagramBrowser 
+	           . '<div class="box"><img src="' . $aa . '">' 
+			   . '<input type="checkbox" id="checkbox_' . $counter . '" svgId="' . 1 . '">'
+               . '<label for="checkbox_' . $counter . '">' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] . '</label>'
+			   . '</div>';
+
+
 	 $counter++;
-	 if($counter > $default_layout)
-	    break;
+	 if($counter <= $default_layout && $node->field_display_on_load[LANGUAGE_NONE][0]['value'] == 1){
+		$diagramContents =  get_and_prepare_diagram($node); 
+		$resultHtml = $resultHtml . '<div class="svgContainer">' . $diagramContents . '</div>';
+	 }
+	    
    }
 
    $diagramBrowser = $diagramBrowser 
@@ -242,7 +203,7 @@ function get_mdn() {
    
    $settingsArr=array(
                       'connections' => get_connections(), 
-					  'visualElements' => $visual_element_list,
+					  'visualElements' => get_visual_elements_with_connections(),
 					  'heatmap' => get_heatmap()); // data for research purposes, will be removed
 					  
 					  // connections -> all connections
@@ -250,54 +211,6 @@ function get_mdn() {
    drupal_add_js($settingsArr, 'setting');
    
    return  $resultHtml;  
-  // $svg_js='none';
-   //$diagrams = db_query("SELECT {file_managed}.fid,{file_managed}.uri FROM (({file_managed} inner join {file_usage} on {file_managed}.fid={file_usage}.fid) inner join {node} on {file_usage}.id = {node}.nid) where {node}.type = 'diagram'", 
-   //$diagrams = db_query("SELECT t1.fid,t1.uri FROM (({file_managed} as t1 inner join {file_usage} as t2 on t1.fid=t2.fid) inner join {node} as t3 on t2.id = t3.nid) where t3.type = 'diagram'");
-   //foreach ($diagrams as $record) {
-	  //$temp = $record->uri;   
-	  
-   //} 
-  
-  
-  
-  
-  //$pos = strrpos($contents, '</svg', -1);
-
-  //if ($pos === false){
-	//$contents2 = "SVG file is not valid. Please make sure to load diagrams in SVG format";
-	//}
-  //else{
-    //$contents2 = substr_replace($contents, $svg_js, $pos, 0);  	 
-  //}
-  
-  
-  
-
-  
-
-  
-  //$file = file_load(8);
-  //$contents = file_get_contents($file->uri);
-  //$pos = strrpos($contents, '</svg', -1);
-    
-  //if ($pos === false){
-//	$contents2 = $contents2 . '<br>' . "SVG file is not valid. Please make sure to load diagrams in SVG format";
-	//}
-  //else{
-    //$contents3 = substr_replace($contents, $svg_js, $pos, 0);
-    //$contents2 = $contents2 . '<br>' . $contents3;	
-    //}
-   
-   /*
-   Possible design 
-   2 divs one over the other and a space for buttons
-   zoom button will be in the svg
-   
-   */
-    //$contents2 = $contents2 . '<br><a href="?q=ajaxreader/nojs/5" class="use-ajax"> test link</a>';
-	//$contents2 = $contents2 . '<br>' . $txt;
-	
-  //return  "<div id='mdn'><p>hello</p></div>";
   
 }
 
@@ -331,15 +244,14 @@ function get_connections(){
 return $arr;
 }
 
-function get_visual_elements_with_connections($diagramId){
+function get_visual_elements_with_connections(){
    
    $result = db_query("select view1 as viewid, element1 as elementid from drupalConnections "
-                       . " where view1 =:diagramid group by viewid,elementid "	
+                       . " where view1 !='cnt1' group by viewid,elementid "	
 				   . " union "
                    . " select view2 as viewid, element2 as elementid from drupalConnections "
-					   . " where view2 =:diagramid group by viewid,elementid",
-					   array('diagramid' => $diagramId));
-				//. " where view2 != 'cnt1' and view1 =:diagramid group by viewid,elementid "	   
+					   . " where view2 !='cnt1' group by viewid,elementid");
+				//Retrieve all visual elements having any type of connection ( to visual or content elements)
     $count=0;   
 	$arr=array();
     foreach ($result as $record) {
