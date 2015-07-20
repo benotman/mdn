@@ -51,23 +51,48 @@ function DiagramBrowserOK(){
      else same
     	change current diagrams_list	 
 	*/
+	/*
+	if # of selected < LayoutNoOfDiagrams
+       if # of selected < NoOfDiagrams
+         error
+	     return (stay in the same screen)
+       else
+         OK
+	     change LayoutNoOfDiagrams = # of selected
+    if # of selected > LayoutNoOfDiagrams	  
+       error
+       return (stay in the same screen)
+	*/
 	var count=0;
 	var diagramArr =[];
-	for (var i=0; i<5;i++){ // edit: change 5 to the number of diagrams loaded in the diagram selector
+	for (var i=0; i<Drupal.settings.NoOfDiagrams;i++){ // edit: change 5 to the number of diagrams loaded in the diagram selector
 		if(jQuery('#' + 'checkbox_' + i).is(':checked')){
 			count +=1;
-			diagramArr[diagramArr.length] = jQuery('#' + 'checkbox_' + i).attr("svgID");
+			diagramArr[diagramArr.length] = jQuery('#' + 'checkbox_' + i).attr("nid");
 		}
 	}
 	
-	if(count != 2){
-		alert('The number of selected diagrams is " + count + "\n need to be the same selected Layout');
+	if(count < Drupal.settings.LayoutNoOfDiagrams){
+		if(count = Drupal.settings.NoOfDiagrams){
+		   alert('The number of selected diagrams is ' + count + '\n it needs to be the same as the selected Layout');
+           return;		   
+		}
+		else{
+		   Drupal.settings.LayoutNoOfDiagrams = count;
+		}
 	}
-	else{
-		
-	}
-		
+	else if(count > Drupal.settings.LayoutNoOfDiagrams){
+	   alert('The number of selected diagrams is ' + count + '\n it needs to be the same as the selected Layout');
+       return;		   
+	} 
+	// count is now equal to layoutNoOfDiagrams
 	
+    if(count==1)	
+	   jQuery("#AllSVGContainer").load("?q=mdn/diagrams/" + diagramArr[0] + "/" + 0);
+    else if(count==2)	
+	   jQuery("#AllSVGContainer").load("?q=mdn/diagrams/" + diagramArr[0] + "/" + diagramArr[1]);
+     
+    return;	
 }
 
 function heatmap(){

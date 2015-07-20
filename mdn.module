@@ -138,7 +138,8 @@ function get_mdn() {
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Layout</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Related Content</button>'
-				.'</div>';
+				.'</div>'
+				. '<div id="AllSVGContainer">';
    
   $diagramBrowser = '<div id="diagramBrowser" style="display:none">'
                        . '<div id="diagramBrowserButtons">' 
@@ -155,8 +156,7 @@ function get_mdn() {
     
    $result = $query->execute();
    if (empty($result['node'])) {
-	   	return '<p>No diagrams found</p>';
-      // $entities = entity_load($entity_type, array_keys($result[$entity_type]));
+	   	return '<p>No diagrams found</p>'; // To be completed
    }
 
    $nodes = entity_load('node', array_keys($result['node']));
@@ -171,7 +171,7 @@ function get_mdn() {
 	  $aa=file_create_url($fileThumbnail->uri);
       $diagramBrowser = $diagramBrowser 
 	           . '<div class="box"><img src="' . $aa . '">' 
-			   . '<input type="checkbox" id="checkbox_' . $counter . '" svgId="' . 1 . '">'
+			   . '<input type="checkbox" id="checkbox_' . $counter . '" nid="' . $node->nid . '">'
                . '<label for="checkbox_' . $counter . '">' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] . '</label>'
 			   . '</div>';
 
@@ -184,6 +184,9 @@ function get_mdn() {
 	    
    }
 
+   $resultHtml = $resultHtml . '</div>'; // close AllSVGContainer div
+
+   // Following lines Just for testing
    $diagramBrowser = $diagramBrowser 
    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
  . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
@@ -204,7 +207,9 @@ function get_mdn() {
    $settingsArr=array(
                       'connections' => get_connections(), 
 					  'visualElements' => get_visual_elements_with_connections(),
-					  'heatmap' => get_heatmap()); // data for research purposes, will be removed
+					  'heatmap' => get_heatmap(), 
+					  'LayoutNoOfDiagrams' => 2,
+					  'NoOfDiagrams' => $counter);
 					  
 					  // connections -> all connections
 					  //Visaul elements -> all visual elements having connections to other elements
@@ -303,8 +308,45 @@ function mdn_menu() {
 	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
   );
-  
+
+  $items['mdn/diagrams'] = array(
+    'page callback' => 'mdn_diagram_browser',
+	'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+	'delivery callback' => 'mdn_diagram_browser_delivery', 
+  );
+    
   return $items;
+}
+
+function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
+   
+   $query = new EntityFieldQuery();
+   $query->entityCondition('entity_type', 'node')
+	 ->entityCondition('bundle', 'diagram')
+	 ->entityCondition('entity_id', array($diagram1_nid, $diagram2_nid), 'IN');                    
+	// ->fieldCondition('field_display_on_load', 'value', 1, '=');
+	// ->fieldOrderBy('field_display_on_load', 'entity_id', 'ASC'); check this to load the first few diagrams 
+    
+   $result = $query->execute();
+   
+   if (empty($result['node'])) {
+	   	return '<p>No diagrams found</p>'; // To be completed
+   }
+   else {
+	   $resultHtml='';
+	   $nodes = entity_load('node', array_keys($result['node']));
+	   foreach ($nodes as $node) {
+		   $diagramContents =  get_and_prepare_diagram($node); 
+		   $resultHtml = $resultHtml . '<div class="svgContainer">' . $diagramContents . '</div>';
+	   }
+	
+   }
+
+}
+
+function mdn_diagram_browser_delivery($cnt){
+	 print $cnt;
 }
 
 /*
