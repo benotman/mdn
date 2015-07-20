@@ -7,8 +7,6 @@
 	var relatedHighlightedElements=[];
 	var eventCounter=0;
 	
-	var clickSelectedElements=[];
-	var clickHighilightedElements=[];
 	var visualElements = []; // All visual elements in all diagram; includes elements having at least one connection(to visual or content element)
                              // This is a key data structure where we keep track of element orignial style, status (regular, selected, highlighted)
 							 // , and number of highlighting requests for the element (made by other elements)
@@ -46,7 +44,12 @@ function clearSelections(){
 function DiagramBrowserOK(){
 	/*
 	 create a list of diagrams
-	 check if selected is equal to layout 
+	 check if selected is less than layout
+        error
+     if selected is more 
+        error
+     else same
+    	change current diagrams_list	 
 	*/
 	var count=0;
 	var diagramArr =[];
@@ -56,6 +59,15 @@ function DiagramBrowserOK(){
 			diagramArr[diagramArr.length] = jQuery('#' + 'checkbox_' + i).attr("svgID");
 		}
 	}
+	
+	if(count != 2){
+		alert('The number of selected diagrams is " + count + "\n need to be the same selected Layout');
+	}
+	else{
+		
+	}
+		
+	
 }
 
 function heatmap(){

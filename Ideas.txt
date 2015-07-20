@@ -15,8 +15,67 @@ ORDER BY minId
 7509
 8979
 
-4:35 -> 6:00
-6:30->8:25
+
+
+7/18/2015
+Users: What do I need? need to know vocab of users. need to know how user navigation is stored in db, 
+need to know where it is stored (DB or cookie)
+I expect Drupal to save 
+
+/*
+Overall algorithm for diagrams and layout
+
+-- Variables --
+LayoutNoOfDiagrams
+NoOfDiagrams
+displayedDiagrams 
+
+VisualElements
+Connections
+
+
+-- Load --
+always load two diagrams (default value)
+
+NoOfDiagrams = getNoOfDiagrams()
+connections - getConnections
+visualELements = getVisualElements
+LayoutNoOfDiagrams = 2 (default)
+
+check LayoutNoOfDiagrams with NoOfDiagrams
+					   
+					   
+iterate over the display on load (top LayoutNoOfDiagrams)
+  pull the diagrams
+  prepare unprepared diagrams
+  fill in the mdn div with svg content
+return mdn div
+
+-- select diagrams --
+if # of selected < LayoutNoOfDiagrams
+   if # of selected < NoOfDiagrams
+      error
+	  return (stay in the same screen)
+   else
+      OK
+	  change LayoutNoOfDiagrams = # of selected
+if # of selected > LayoutNoOfDiagrams	  
+   error
+   return (stay in the same screen)
+
+
+load diagram 
+function in php (list of diagrams to display)    
+  returns html for mdn
+ 
+   
+for all diagrams
+  
+
+-- configuration --
+Layout (no of Diagrams) (button on MDN)
+
+*/
 
 - buttons: clear, full screen, related content, diagram browser, layout 
 diagram browser ideas:
