@@ -41,6 +41,10 @@ function clearSelections(){
 	}
 }   
 
+function DiagramBrowserCancel(){
+   jQuery.modal.close();	
+}
+
 function DiagramBrowserOK(){
 	/*
 	 create a list of diagrams
@@ -87,13 +91,54 @@ function DiagramBrowserOK(){
 	} 
 	// count is now equal to layoutNoOfDiagrams
 	
-    if(count==1)	
-	   jQuery("#AllSVGContainer").load("?q=mdn/diagrams/" + diagramArr[0] + "/" + 0);
-    else if(count==2)	
-	   jQuery("#AllSVGContainer").load("?q=mdn/diagrams/" + diagramArr[0] + "/" + diagramArr[1]);
-     
-    return;	
+	var arg1; var arg2;
+    if(count==1){
+		arg1=diagramArr[0]; 
+		arg2=0; 
+	}
+    else if(count==2){
+		arg1=diagramArr[0]; 
+		arg2=diagramArr[1]; 
+	} 	
+		
+    jQuery("#AllSVGContainer").load("?q=mdn/diagrams/" + arg1 + "/" + arg2, DiagramBroswerOKCallBack);
+	jQuery.modal.close();
 }
+
+function DiagramBroswerOKCallBack(){
+   SVGDisplayPreparation();
+   /*
+   get all svg ids
+   add them to displayedDiagrams
+   get all selected, highlighted in current diagrams and change them
+   */   
+    displayedDiagrams.length=0;
+	var relatedElements=[];
+    jQuery("svg[prepared='yes']").each(function( index ) {
+       //console.log( index + ": " + jQuery( this ).attr("id") );
+	   displayedDiagrams[displayedDiagrams.length]=jQuery( this ).attr("id");
+	   
+	   relatedElements = jQuery.grep(visualElements, function(v,i) {
+           return (v[0] === displayedDiagrams[displayedDiagrams.length -1] && v[6] === 1);     
+       });
+	   
+	   for(var i=0; i<relatedElements.length;i++){
+		   changeStyle(relatedElements[i][0] + '_' + relatedElements[i][1], 'select',0);
+	   }
+
+	   relatedElements = jQuery.grep(visualElements, function(v,i) {
+           return (v[0] === displayedDiagrams[displayedDiagrams.length - 1] && v[6] === 2);  
+       });
+	   
+	   for(var i=0; i<relatedElements.length;i++){
+		   changeStyle(relatedElements[i][0] + '_' + relatedElements[i][1], 'highlight',0);
+	   }
+	   
+    });
+	
+	
+}
+
 
 function heatmap(){
 
@@ -175,7 +220,7 @@ function svgElementClicked(theElement){
 			}
 		}		
 	}
-	else{ //element is selected ->unselect
+	else{ //element is selected -> unselect
 	    if(visualElements[elemIndex][7] === 0){ // current element highlight count = 0 --> change to regular
 		   changeStyle(elemId,'regular',elemIndex); 	
 		   visualElements[elemIndex][6]=0; //element is regular now		   
@@ -453,8 +498,27 @@ function sendClickToParentDocument(evt)
 	}	
 
 jQuery(document).ready(function($) {
-   
-    var arr = document.getElementsByTagName("path");
+	 SVGDisplayPreparation();
+	 var elemId='';
+	 for (var i=0;i<Drupal.settings.visualElements.length;i++){
+        elemId ="#" + Drupal.settings.visualElements[i][0] + '_' + Drupal.settings.visualElements[i][1];
+		visualElements[i]=[Drupal.settings.visualElements[i][0],
+		                   Drupal.settings.visualElements[i][1],
+		                   jQuery(elemId).css("fill"),
+		                   jQuery(elemId).css("stroke"),
+		                   jQuery(elemId).css("stroke-width"),
+		                   jQuery(elemId).css("opacity"),
+		                   0,0]; // [0] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
+						         // [7] number of highlighting requests made by other elements
+       // console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
+	 }
+	 
+	 
+});
+
+function SVGDisplayPreparation(){
+	
+     var arr = document.getElementsByTagName("path");
 	for (var i = 0; i < arr.length; i++) { 
 	   arr[i].addEventListener("click", sendClickToParentDocument, false);
 	   arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
@@ -473,20 +537,4 @@ jQuery(document).ready(function($) {
      jQuery("svg[hide_elements='1'] path").css("opacity","0");
 	 jQuery("svg[hide_elements='1'] ellipse").css("opacity","0");
 	 jQuery("svg text").css("pointer-events","none");
-	 
-	 var elemId='';
-	 for (var i=0;i<Drupal.settings.visualElements.length;i++){
-        elemId ="#" + Drupal.settings.visualElements[i][0] + '_' + Drupal.settings.visualElements[i][1];
-		visualElements[i]=[Drupal.settings.visualElements[i][0],
-		                   Drupal.settings.visualElements[i][1],
-		                   jQuery(elemId).css("fill"),
-		                   jQuery(elemId).css("stroke"),
-		                   jQuery(elemId).css("stroke-width"),
-		                   jQuery(elemId).css("opacity"),
-		                   0,0]; // [0] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
-						         // [7] number of highlighting requests made by other elements
-       // console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
-	 }
-	 
-	 
-});
+}

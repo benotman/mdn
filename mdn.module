@@ -321,6 +321,7 @@ function mdn_menu() {
 
 function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
    
+   
    $query = new EntityFieldQuery();
    $query->entityCondition('entity_type', 'node')
 	 ->entityCondition('bundle', 'diagram')
@@ -340,7 +341,7 @@ function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
 		   $diagramContents =  get_and_prepare_diagram($node); 
 		   $resultHtml = $resultHtml . '<div class="svgContainer">' . $diagramContents . '</div>';
 	   }
-	
+	   return $resultHtml;
    }
 
 }
