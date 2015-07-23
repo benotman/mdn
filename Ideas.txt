@@ -1,3 +1,21 @@
+Higherone
+		 easy help
+		 third tab email support
+		 id hold
+		 enquiry passport
+				  
+		 discard category, incident link
+				  
+		 discard another box
+
+		 
+Full screen requires arranging same divs in a different way
+The use of class maybe
+can I show current mdn div as full screen
+I would just need to change the class of the mdn div
+
+
+		 
 Plan 
 Play with height: try to insure site is good for some window sizes
 - 50%

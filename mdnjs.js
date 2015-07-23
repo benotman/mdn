@@ -450,6 +450,32 @@ function svgElementMouseOut(theElement){
 	CurrentHoverElement="";
 }	
 
+function relatedContent(){
+	/*
+	  Get selections from visualElements
+	  send that 
+	  server will do union 
+	  and return results
+	*/
+	var	selectedElements = jQuery.grep(visualElements, function(v,i) {
+        return (v[6] === 1);     
+    });
+	
+    if(selectedElements.length <= 0){
+		alert("No selected elements");
+		return;
+	}
+	
+	var par ='';
+	for(var i=0; i<selectedElements.length;i++){
+		if(i==0)
+		   par = par + selectedElements[i][0] + '_' + selectedElements[i][1];
+	    else
+		   par = par + '_' + selectedElements[i][0] + '_' + selectedElements[i][1];	
+	}
+	
+	jQuery("#content").load("?q=mdn/get/ajax/" + par);
+}
 
 function sendClickToParentDocument(evt)
 	{

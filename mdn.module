@@ -137,7 +137,7 @@ function get_mdn() {
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="heatmap();">Full Screen</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
 				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Layout</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Related Content</button>'
+				. '<button type="submit" value="Submit" class="mdnButton" onClick="relatedContent();">Related Content</button>'
 				.'</div>'
 				. '<div id="AllSVGContainer">';
    
@@ -404,7 +404,14 @@ function mdn_hover($viewId, $elementId){
    drupal_json_output($jsonstring);
 }
 
-function mdn_get_node($viewId, $elementId) {
+function mdn_get_node($visualElements){
+	$pieces = explode("_", $visualElements);
+	for($i=0;$i<strlen($pieces);$i+=2){
+		
+	}
+}
+
+function mdn_get_content_for_visual_element($viewId, $elementId) {
   /*
      retrieve connections
 	 
@@ -487,6 +494,93 @@ function mdn_get_node($viewId, $elementId) {
   
   //return "<p>" . $viewId . " " . $elementId . "</p>";
 }
+
+/*
+function mdn_get_node($viewId, $elementId) {
+  /*
+     retrieve connections
+	 
+	 if one 
+	    node load as usual
+	 else
+        create a list with node title and a link		 
+  
+  
+  $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element and view2='cnt1') or (view2 = :view and element2 = :element and view1='cnt1')", 
+   array(':view' => $viewId, ':element' => $elementId));
+   
+  $content =""; 
+  $count=0;
+  $firstNid="";
+  $elem="";
+  
+/*
+ $links =  array(
+  'item1' => array( 'title' => '1st Item', 'href' => 'path/one' ),
+  'item2' => array( 'title' => '2nd Item', 'href' => 'path/two' ),
+);
+
+  
+  $links = array();
+  foreach ($result as $record) {
+	  if($viewId === $record->view1 && $elementId === $record->element1){
+	     $elem = $record->element2;
+	  }	 
+	  else{
+	     $elem = $record->element1;   
+	  }
+      
+	  $nodeRec = db_query("SELECT * FROM {node} where nid = :nid", array(':nid' => $elem))->fetchobject();
+	  if($nodeRec){
+		 //$content = $content . "<li>" . $nodeRec->title . "</li>";  
+		// $links = array('item1' => array( 'title' => $nodeRec->title, 'href' => '?q=node/' . $nodeRec->nid ));
+		$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'node/' . $nodeRec->nid);
+		//$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'ajaxreader/nojs/' . $nodeRec->nid, 'attributes' => array('class' => 'use-ajax'));
+		//$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'jQuery("#content").load("?q=mdn/get/ajax/svg1/b7');
+		//jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
+		
+	  }
+	//  else{
+		  // delete this connection
+	 // }
+
+	  $count = $count +1;
+	  if($count == 1) 
+	     {$firstNid= $elem;}
+  }
+  
+  if($count <= 0){
+	  $content = "<ul><li>No result found</li></ul>";
+  }
+  else if($count == 1){
+      $node = node_load((int) $firstNid);
+	  $cnt = node_view($node, 'teaser');
+	  $content = drupal_render($cnt);
+  }
+  else{
+	  //$content =$content . "</ul>";   
+	  $vars = array('links' => $links,
+                    'attributes' => array('class' => 'links'),
+					'heading' => array('text' => 'Related Pages', 'level' => 'h2'));
+	  //$content= theme_links($links, $attributes = array('class' => 'links'));
+	  $content= theme_links($vars);
+	// $content = theme('links' => $links, 'attributes' => array('class' => 'links'));
+  }
+  
+  return $content;
+  
+ //   $commands = array();
+   // $commands[] = ajax_command_replace('#content', '<div id="content">' . $content . '</div>');
+   // $page = array(
+    //  '#type' => 'ajax',
+     // '#commands' => $commands
+    //);
+    //ajax_deliver($page);
+  
+  //return "<p>" . $viewId . " " . $elementId . "</p>";
+}
+*/
+
 
 function mdn_magic($page_callback_result) {
   // Only render content
