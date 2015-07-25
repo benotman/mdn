@@ -132,21 +132,22 @@ function get_mdn() {
  
   $default_layout = 2; // default number of diagrams to display
 
-  $resultHtml='<div id="mdnButtonContainer">'
-                . '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Clear Selections</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="heatmap();">Full Screen</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Layout</button>'
-				. '<button type="submit" value="Submit" class="mdnButton" onClick="relatedContent();">Related Content</button>'
-				.'</div>'
-				. '<div id="AllSVGContainer">';
+  $resultHtml='<div id="mdnContainer">'  
+                .'<div id="mdnButtonContainer">'
+                   . '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Clear Selections</button>'
+				   . '<button type="submit" value="Submit" class="mdnButton" onClick="fullScreen();">Full Screen</button>'
+				   . '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
+				   . '<button type="submit" value="Submit" class="mdnButton" onClick="Layout();">Layout</button>'
+				   . '<button type="submit" value="Submit" class="mdnButton" onClick="relatedContent();">Related Content</button>'
+			    .'</div>'
+			    .'<div id="AllSVGContainer">';
    
   $diagramBrowser = '<div id="diagramBrowser" style="display:none">'
                        . '<div id="diagramBrowserButtons">' 
-					   . '<p id="diagramBrowserComment">Select/Deselect diagrams to view in the main page</p>'
-					   . '<button id="diagramBrowserOK" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserOK();">OK</button>'
-					   . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
-					   . '</div>';
+					      . '<p id="diagramBrowserComment">Select/Deselect diagrams to view in the main page</p>'
+					      . '<button id="diagramBrowserOK" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserOK();">OK</button>'
+					      . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
+					    .'</div>';
 
    $query = new EntityFieldQuery();
    $query->entityCondition('entity_type', 'node')
@@ -171,25 +172,25 @@ function get_mdn() {
 	  $aa=file_create_url($fileThumbnail->uri);
       $diagramBrowser = $diagramBrowser 
 	           . '<div class="box"><img src="' . $aa . '">' 
-			   . '<input type="checkbox" id="checkbox_' . $counter . '" nid="' . $node->nid . '">'
-               . '<label for="checkbox_' . $counter . '">' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] . '</label>'
+			        . '<input type="checkbox" id="checkbox_' . $counter . '" nid="' . $node->nid . '">'
+                    . '<label for="checkbox_' . $counter . '">' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] . '</label>'
 			   . '</div>';
 
 
 	 $counter++;
 	 if($counter <= $default_layout && $node->field_display_on_load[LANGUAGE_NONE][0]['value'] == 1){
 		$diagramContents =  get_and_prepare_diagram($node); 
-		$resultHtml = $resultHtml . '<div class="svgContainer">' . $diagramContents . '</div>';
+		$resultHtml = $resultHtml . '<div class="svgContainer mdnMediumScreen">' . $diagramContents . '</div>';
 	 }
 	    
    }
 
-   $resultHtml = $resultHtml . '</div>'; // close AllSVGContainer div
+   $resultHtml = $resultHtml . '</div></div>'; // close AllSVGContainer div, mdnContainer div
 
    // Following lines Just for testing
    $diagramBrowser = $diagramBrowser 
    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
- . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
+   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
     . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
     . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
     . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
@@ -405,37 +406,39 @@ function mdn_hover($viewId, $elementId){
 }
 
 function mdn_get_node($visualElements){
+	$links=array();
 	$pieces = explode("_", $visualElements);
-	for($i=0;$i<strlen($pieces);$i+=2){
-		
+	
+	//return '<p>' . $pieces[0] . ' ' . $pieces[1] . ' ' . $pieces[2] . ' ' . $pieces[3] . '</p>';
+	
+	for($i=0;$i<count($pieces);$i+=2){
+		$links= array_merge($links, mdn_get_content_for_visual_element($pieces[$i],$pieces[$i+1],count($links))); 
+		//return '<p>' . $pieces[$i] . ' ' . $pieces[$i+1] . ' ' . count($links) . '</p>';
 	}
+	
+	
+  if(count($links) <= 0){
+	  $content = "<ul><li>No result found</li></ul>";
+  }
+  else{
+	   $vars = array('links' => $links,
+                    'attributes' => array('class' => 'links'),
+					'heading' => array('text' => 'Related Pages', 'level' => 'h2'));
+	   $content= theme_links($vars);
+  }
+  
+  return $content;
 }
 
-function mdn_get_content_for_visual_element($viewId, $elementId) {
-  /*
-     retrieve connections
-	 
-	 if one 
-	    node load as usual
-	 else
-        create a list with node title and a link		 
-  */
-  
+function mdn_get_content_for_visual_element($viewId, $elementId, $count_start) {
+
   $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element and view2='cnt1') or (view2 = :view and element2 = :element and view1='cnt1')", 
    array(':view' => $viewId, ':element' => $elementId));
    
   $content =""; 
-  $count=0;
-  $firstNid="";
+  $count=$count_start;
   $elem="";
-  
-/*
- $links =  array(
-  'item1' => array( 'title' => '1st Item', 'href' => 'path/one' ),
-  'item2' => array( 'title' => '2nd Item', 'href' => 'path/two' ),
-);
-*/
-  
+
   $links = array();
   foreach ($result as $record) {
 	  if($viewId === $record->view1 && $elementId === $record->element1){
@@ -447,52 +450,15 @@ function mdn_get_content_for_visual_element($viewId, $elementId) {
       
 	  $nodeRec = db_query("SELECT * FROM {node} where nid = :nid", array(':nid' => $elem))->fetchobject();
 	  if($nodeRec){
-		 //$content = $content . "<li>" . $nodeRec->title . "</li>";  
-		// $links = array('item1' => array( 'title' => $nodeRec->title, 'href' => '?q=node/' . $nodeRec->nid ));
 		$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'node/' . $nodeRec->nid);
-		//$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'ajaxreader/nojs/' . $nodeRec->nid, 'attributes' => array('class' => 'use-ajax'));
-		//$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'jQuery("#content").load("?q=mdn/get/ajax/svg1/b7');
-		//jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
-		
 	  }
 	//  else{
 		  // delete this connection
 	 // }
-
 	  $count = $count +1;
-	  if($count == 1) 
-	     {$firstNid= $elem;}
   }
   
-  if($count <= 0){
-	  $content = "<ul><li>No result found</li></ul>";
-  }
-  else if($count == 1){
-      $node = node_load((int) $firstNid);
-	  $cnt = node_view($node, 'teaser');
-	  $content = drupal_render($cnt);
-  }
-  else{
-	  //$content =$content . "</ul>";   
-	  $vars = array('links' => $links,
-                    'attributes' => array('class' => 'links'),
-					'heading' => array('text' => 'Related Pages', 'level' => 'h2'));
-	  //$content= theme_links($links, $attributes = array('class' => 'links'));
-	  $content= theme_links($vars);
-	// $content = theme('links' => $links, 'attributes' => array('class' => 'links'));
-  }
-  
-  return $content;
-  
- //   $commands = array();
-   // $commands[] = ajax_command_replace('#content', '<div id="content">' . $content . '</div>');
-   // $page = array(
-    //  '#type' => 'ajax',
-     // '#commands' => $commands
-    //);
-    //ajax_deliver($page);
-  
-  //return "<p>" . $viewId . " " . $elementId . "</p>";
+  return $links;
 }
 
 /*

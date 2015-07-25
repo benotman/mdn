@@ -12,6 +12,10 @@ svg {
     left: 0;
 }
 */
+
+/*
+Diagram Browser Section
+*/
 #simplemodal-overlay {background-color:#000;}
 #simplemodal-container {background-color:#333; border:8px solid #444; padding:12px;}
 
@@ -55,13 +59,48 @@ svg {
   margin-right: 2px;
 }
 
+/*
+mdn Section
+<div id="mdnContainer">
+    <div id="mdnButtonContainer">
+        some <button>
+    </div>
+
+    <div id="AllSVGContainer">
+        <div class="svgContainer mdnMediumScreen"> // second class changes to mdnFullScreen when fullscreen button is clicked
+            <svg> ...
+        </div>
+        <div class="svgContainer mdnMediumScreen">
+            <svg> ...
+        </div>  // currently only two svgs
+    </div>
+	
+    <div id="diagramBrowser" style="display:none"">
+   
+    </div>
+
+</div>
+*/
+
+#AllSVGContainer {
+  margin-top: 2px;
+}
+
 svg {
   width: 100%;
   height: 100%;
 }
 
-.svgContainer {
+.mdnMediumScreen {
   width: 100%;
+  display: block;
+}
+
+.mdnFullScreen {
+  width: 49%;
+  display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
 }
 
 .mdnButton {

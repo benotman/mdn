@@ -165,6 +165,31 @@ function displayDiagramBrowser(){
 		maxHeight:500
 	});
 }
+
+function fullScreen(){
+	jQuery(".svgContainer").each(function(index){
+		
+		jQuery(this).removeClass("mdnMediumScreen").addClass("mdnFullScreen");
+	});
+	
+	jQuery("#mdnContainer").modal({
+		minWidth: jQuery(window).width(),
+		minHeight: jQuery(window).height(),
+		persist:true,
+		onClose: function (dialog){
+		   	jQuery(".svgContainer").each(function(index){
+		       jQuery(this).removeClass("mdnFullScreen").addClass("mdnMediumScreen");
+	        });
+		   jQuery.modal.close(); // must call this!	
+		}
+		
+	});
+
+}
+
+function Layout(){
+	jQuery.modal.close();
+}
    
 function getIndexOfElement(arr, viewId, elemId){
     for(var i=0; i<arr.length; i++){
@@ -475,11 +500,12 @@ function relatedContent(){
 	}
 	
 	jQuery("#content").load("?q=mdn/get/ajax/" + par);
+	console.log(par);
 }
 
 function sendClickToParentDocument(evt)
 	{
-	   console.log(evt.target.getAttribute("id") + " " + evt.currentTarget.getAttribute("id"));
+	   //console.log(evt.target.getAttribute("id") + " " + evt.currentTarget.getAttribute("id"));
 	   //evt.stopPropagation();
 	   // SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
 	    //evt.cancelBubble = true;
