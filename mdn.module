@@ -139,6 +139,7 @@ function get_mdn() {
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="Layout();">Layout</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="relatedContent();">Related Content</button>'
+				   . '<button type="submit" value="Submit" class="mdnButton" onClick="heatmap();">userData</button>'
 			    .'</div>'
 			    .'<div id="AllSVGContainer">';
    
@@ -208,7 +209,8 @@ function get_mdn() {
    $settingsArr=array(
                       'connections' => get_connections(), 
 					  'visualElements' => get_visual_elements_with_connections(),
-					  'heatmap' => get_heatmap(), 
+					  'heatmap' => get_heatmap3(), 
+					  'userData' => user_firstSession(),
 					  'LayoutNoOfDiagrams' => 2,
 					  'NoOfDiagrams' => $counter);
 					  
@@ -232,6 +234,64 @@ function get_heatmap(){
 	}
 	
 return $arr;
+}
+
+function get_heatmap2(){ //click count for all users for first session
+	$result = db_query("SELECT sub_section, count(id) as cnt FROM user_clean where action ='click' group by sub_section");
+    $count=0;   
+	$arr=array();
+    foreach ($result as $record) {
+	  $arr[$count][0] = $record->sub_section;
+	  $arr[$count][1] = $record->cnt;
+    $count++;	 
+	}
+	
+return $arr;
+}
+
+function get_heatmap3(){ //click count for all users for second session
+	$result = db_query("SELECT page_section, sub_section, count(id) as cnt FROM user_clean where action ='click2' group by page_section, sub_section");
+    $count=0;   
+	$arr=array();
+    foreach ($result as $record) {
+	  $arr[$count][0] = $record->sub_section;
+	  $arr[$count][1] = $record->cnt;
+	  $arr[$count][2] = $record->page_section;
+    $count++;	 
+	}
+	
+return $arr;
+}
+
+function get_heatmap4(){ //hover count for all users for second session
+	$result = db_query("SELECT page_section, sub_section, count(id) as cnt FROM user_clean where action ='hoverout' group by page_section, sub_section");
+    $count=0;   
+	$arr=array();
+    foreach ($result as $record) {
+	  $arr[$count][0] = $record->sub_section;
+	  $arr[$count][1] = $record->cnt;
+	  $arr[$count][2] = $record->page_section;
+    $count++;	 
+	}
+	
+return $arr;
+}
+
+
+function user_firstSession(){
+	$result = db_query("SELECT * FROM UserCleanGroupHover where user_id = 4468 and minid < 24203 order by minid");
+    $count=0;   
+	$arr=array();
+    foreach ($result as $record) {
+	  $arr[$count][0] = $record->action_time;
+	  $arr[$count][1] = $record->page_section;
+	  $arr[$count][2] = $record->sub_section;
+	  $arr[$count][3] = $record->ACTION;	  
+      $count++;	 
+	}
+	
+return $arr;
+	
 }
 
 function get_connections(){

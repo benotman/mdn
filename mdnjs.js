@@ -13,6 +13,7 @@
 	var svgElementHasConnections=false;
 	var flagKeepColor = false;
 	var displayedDiagrams=['svg1', 'svg2'];
+	var layout;
 	
     var rect = {
    'hoverfill': "rgba(235,131,22,1)",
@@ -144,7 +145,7 @@ function heatmap(){
 
   for (var i=0;i<Drupal.settings.heatmap.length;i++){
 	  
-	  var value = ((Drupal.settings.heatmap[i][1] - 7) / (124 - 7));
+	  var value = ((Drupal.settings.heatmap[i][1] - 1) / (174 - 1));
 	  var aR = 255;   var aG = 255; var aB=255;  // RGB for our 1st color (blue in this case).
       var bR = 0; var bG = 0; var bB=0;    // RGB for our 2nd color (red in this case).
  
@@ -154,9 +155,55 @@ function heatmap(){
 	  console.log(Math.round(red) + ' ' + Math.round(green) + ' ' + Math.round(blue));
 	  var newRGB = 'rgba(' + Math.round(red) + ',' + Math.round(green) + ',' + Math.round(blue) + ',1)';
 	  //var newRGB = 'rgba(' + Math.round(red) + ',' + 0 + ',' + 0 + ',1)';
-	   jQuery("#" + "svg1_" + Drupal.settings.heatmap[i][0]).css("fill",newRGB);
+	  if(Drupal.settings.heatmap[i][2] == 'AGView')
+	      jQuery("#" + "svg1_" + Drupal.settings.heatmap[i][0]).css("fill",newRGB);
+	  else
+		  jQuery("#" + "svg2_" + Drupal.settings.heatmap[i][0]).css("fill",newRGB).css("opacity","1"); 
   }
 	
+}
+var userDataCounter=-1;
+var userDataArr;
+
+function userData(){
+	
+	if(userDataCounter >= userDataArr.length){
+		alert("end browsing");
+		return;
+	}
+	
+	var viewid='';
+	if(userDataCounter>=0){
+		if(userDataArr[userDataCounter][1] == 'AGView'){
+		   changeStyle('svg1' + '_' + userDataArr[userDataCounter][2],'regular',0);	
+		}
+		else if(userDataArr[userDataCounter][1] == 'TreeView'){
+		   changeStyle('svg2' + '_' + userDataArr[userDataCounter][2],'regular',0);		
+		}
+	}
+	
+   userDataCounter++;	
+   if(userDataArr[userDataCounter][3] == 'click'){
+      if(userDataArr[userDataCounter][1] == 'AGView'){
+	      changeStyle('svg1' + '_' + userDataArr[userDataCounter][2],'select',0); 
+      }
+	  else if(userDataArr[userDataCounter][1] == 'TreeView'){
+		  changeStyle('svg2' + '_' + userDataArr[userDataCounter][2],'select',0); 
+	  }
+   }
+   else if(userDataArr[userDataCounter][3] == 'hover' || userDataArr[userDataCounter][3] == 'hoverout'){
+      if(userDataArr[userDataCounter][1] == 'AGView'){
+	      changeStyle('svg1' + '_' + userDataArr[userDataCounter][2],'highlight',0); 
+      }
+	  else if(userDataArr[userDataCounter][1] == 'TreeView'){
+		  changeStyle('svg2' + '_' + userDataArr[userDataCounter][2],'highlight',0); 
+	  }
+   }
+   else if(userDataArr[userDataCounter][3] == 'page_lookup') {
+	   alert("page lookup " + userDataArr[userDataCounter][2]);
+   } 	
+   
+   
 }
 
 function displayDiagramBrowser(){
@@ -188,7 +235,14 @@ function fullScreen(){
 }
 
 function Layout(){
-	jQuery.modal.close();
+	//jQuery.modal.close();
+	if (layout==2){
+	   jQuery(".svgContainer:nth-child(2)").html('');
+       layout=1;	   
+	}else if (layout==1){
+		
+	}
+		
 }
    
 function getIndexOfElement(arr, viewId, elemId){
@@ -565,7 +619,8 @@ jQuery(document).ready(function($) {
        // console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
 	 }
 	 
-	 
+	 userDataArr = Drupal.settings.userData;
+	 layout = Drupal.settings.LayoutNoOfDiagrams;
 });
 
 function SVGDisplayPreparation(){
