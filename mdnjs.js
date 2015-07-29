@@ -70,23 +70,23 @@ function DiagramBrowserOK(){
 	*/
 	var count=0;
 	var diagramArr =[];
-	for (var i=0; i<Drupal.settings.NoOfDiagrams;i++){ // edit: change 5 to the number of diagrams loaded in the diagram selector
+	for (var i=0; i<Drupal.settings.NoOfDiagrams;i++){
 		if(jQuery('#' + 'checkbox_' + i).is(':checked')){
 			count +=1;
 			diagramArr[diagramArr.length] = jQuery('#' + 'checkbox_' + i).attr("nid");
 		}
 	}
 	
-	if(count < Drupal.settings.LayoutNoOfDiagrams){
+	if(count < layout){
 		if(count = Drupal.settings.NoOfDiagrams){
 		   alert('The number of selected diagrams is ' + count + '\n it needs to be the same as the selected Layout');
            return;		   
 		}
 		else{
-		   Drupal.settings.LayoutNoOfDiagrams = count;
+		   layout = count;
 		}
 	}
-	else if(count > Drupal.settings.LayoutNoOfDiagrams){
+	else if(count > layout){
 	   alert('The number of selected diagrams is ' + count + '\n it needs to be the same as the selected Layout');
        return;		   
 	} 
@@ -145,7 +145,7 @@ function heatmap(){
 
   for (var i=0;i<Drupal.settings.heatmap.length;i++){
 	  
-	  var value = ((Drupal.settings.heatmap[i][1] - 1) / (174 - 1));
+	  var value = ((Drupal.settings.heatmap[i][1] - 1) / (68 - 1));
 	  var aR = 255;   var aG = 255; var aB=255;  // RGB for our 1st color (blue in this case).
       var bR = 0; var bG = 0; var bB=0;    // RGB for our 2nd color (red in this case).
  
@@ -153,12 +153,14 @@ function heatmap(){
       var green = (bG - aG) * value + aG;      // Evaluates as 0.
       var blue  = (bB - aB) * value + aB;      // Evaluates as 255*value + 0.
 	  console.log(Math.round(red) + ' ' + Math.round(green) + ' ' + Math.round(blue));
-	  var newRGB = 'rgba(' + Math.round(red) + ',' + Math.round(green) + ',' + Math.round(blue) + ',1)';
+	  var newRGB = 'rgba(' + Math.round(red) + ',' + Math.round(green) + ',' + Math.round(blue) + ',255)';
 	  //var newRGB = 'rgba(' + Math.round(red) + ',' + 0 + ',' + 0 + ',1)';
 	  if(Drupal.settings.heatmap[i][2] == 'AGView')
 	      jQuery("#" + "svg1_" + Drupal.settings.heatmap[i][0]).css("fill",newRGB);
 	  else
 		  jQuery("#" + "svg2_" + Drupal.settings.heatmap[i][0]).css("fill",newRGB).css("opacity","1"); 
+	  
+	  console.log(Drupal.settings.heatmap[i][0] + " " + newRGB);
   }
 	
 }
@@ -239,8 +241,11 @@ function Layout(){
 	if (layout==2){
 	   jQuery(".svgContainer:nth-child(2)").html('');
        layout=1;	   
+	   displayedDiagrams.length=0;
+	   displayedDiagrams[0]= jQuery(".svgContainer:nth-child(1)").attr("id");
 	}else if (layout==1){
-		
+	   jQuery(".svgContainer:nth-child(2)").html('<p id="NoDiagramSelected"><br>No Diagram is Selected<br></p>');
+       layout=2;	   
 	}
 		
 }
@@ -260,6 +265,7 @@ function svgElementClicked(theElement){
 	/*
        if selected or not
     */	
+	console.log(theElement.id);
 	if(svgElementHasConnections === false) // variable is set in mouseover. svg element has no connections 
 		return;                            // to visual nor content elements -> element is not clickable(selectable)
 	
@@ -371,7 +377,7 @@ function svgElementMouseOver(theElement){
    Ajax way of retrieving connections 
    jQuery.get("?q=mdn/hover/" + IDs[0] + "/" + IDs[1], null, hoverCallback);
    */
-   
+   //console.log(theElement.id);
     var IDs = getViewElementIDs(theElement.id);						  
 
     var relatedElements = jQuery.grep(visualElements, function(v,i) { // if element is in visualElements then this element has 
