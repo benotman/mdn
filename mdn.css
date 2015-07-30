@@ -96,12 +96,20 @@ svg {
   display: block;
 }
 
-.mdnFullScreen {
+.mdnFullScreen.mdnDoubleLayout {
   width: 49%;
   display: inline-block;
   margin-left: 2px;
   margin-right: 2px;
 }
+
+.mdnFullScreen.mdnSingleLayout {
+  height: 98%;
+  display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
 
 .mdnButton {
   color: #900;

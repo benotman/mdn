@@ -137,7 +137,6 @@ function get_mdn() {
                    . '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Clear Selections</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="fullScreen();">Full Screen</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
-				   . '<button type="submit" value="Submit" class="mdnButton" onClick="Layout();">Layout</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="relatedContent();">Related Content</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="userData();">userData</button>'
 			    .'</div>'
@@ -150,6 +149,9 @@ function get_mdn() {
 					      . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
 					    .'</div>';
 
+   $diagramCounter=0;  
+   $layoutCounter =0; // counting diagrams with displayonLoad = true (will be under 2)   
+						
    $query = new EntityFieldQuery();
    $query->entityCondition('entity_type', 'node')
 	 ->entityCondition('bundle', 'diagram');                    
@@ -157,39 +159,42 @@ function get_mdn() {
 	// ->fieldOrderBy('field_display_on_load', 'entity_id', 'ASC'); check this to load the first few diagrams 
     
    $result = $query->execute();
-   if (empty($result['node'])) {
-	   	return '<p>No diagrams found</p>'; // To be completed
+   if (empty($result['node'])) {  // No diagrams found
+	   //	return '<p>No diagrams found</p>';
+		$resultHtml= $resultHtml .  '<div class="svgContainer mdnMediumScreen"></div>';
+		$resultHtml= $resultHtml .  '<div class="svgContainer mdnMediumScreen"></div>';
    }
-
-   $nodes = entity_load('node', array_keys($result['node']));
-   $counter=0;   
-  // $res = print_r($nodes, true);
-  // return $res;
-   $aa='';
-   foreach ($nodes as $node) {
-	  $fidThumbnail = $node->field_thumbnail[LANGUAGE_NONE][0]['fid'];
-	  //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
-	  $fileThumbnail = file_load($fidThumbnail); 
-	  $aa=file_create_url($fileThumbnail->uri);
-      $diagramBrowser = $diagramBrowser 
+   else{
+	  $nodes = entity_load('node', array_keys($result['node']));
+       // $res = print_r($nodes, true);
+      $aa='';
+      foreach ($nodes as $node) {
+	     $fidThumbnail = $node->field_thumbnail[LANGUAGE_NONE][0]['fid'];
+	     //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
+	     $fileThumbnail = file_load($fidThumbnail); 
+	     $aa=file_create_url($fileThumbnail->uri);
+         $diagramBrowser = $diagramBrowser 
 	           . '<div class="box"><img src="' . $aa . '">' 
-			        . '<input type="checkbox" id="checkbox_' . $counter . '" nid="' . $node->nid . '">'
-                    . '<label for="checkbox_' . $counter . '">' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] . '</label>'
+			        . '<input type="checkbox" id="checkbox_' . $diagramCounter . '" nid="' . $node->nid . '">'
+                    . '<label for="checkbox_' . $diagramCounter . '">' . $node->field_thumnail_title[LANGUAGE_NONE][0]['value'] . '</label>'
 			   . '</div>';
 
 
-	 $counter++;
-	 if($counter <= $default_layout && $node->field_display_on_load[LANGUAGE_NONE][0]['value'] == 1){
-		$diagramContents =  get_and_prepare_diagram($node); 
-		$resultHtml = $resultHtml . '<div class="svgContainer mdnMediumScreen">' . $diagramContents . '</div>';
-	 }
-	    
+   	     $diagramCounter++;
+	     if($diagramCounter <= $default_layout && $node->field_display_on_load[LANGUAGE_NONE][0]['value'] == 1){
+		     $diagramContents =  get_and_prepare_diagram($node); 
+		     $resultHtml = $resultHtml . '<div class="svgContainer mdnMediumScreen">' . $diagramContents . '</div>';
+		     $layoutCounter++;
+	     }
+      }
    }
-
+   
    $resultHtml = $resultHtml . '</div></div>'; // close AllSVGContainer div, mdnContainer div
 
    // Following lines Just for testing
-   $diagramBrowser = $diagramBrowser 
+ 
+ $diagramBrowser = $diagramBrowser  . '</div>';
+   /*
    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
     . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
@@ -201,8 +206,8 @@ function get_mdn() {
    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-   . '<p>You can press ESC to close this dialog or click <a href="#" class="simplemodal-close">close</a>.</p>'
-   . '</div>';
+ . '<p>You can press ESC to close this dialog or click <a href="#" class="simplemodal-close">close</a>.</p>'
+ */
    
    $resultHtml = $resultHtml . $diagramBrowser;
    
@@ -211,8 +216,8 @@ function get_mdn() {
 					  'visualElements' => get_visual_elements_with_connections(),
 					  'heatmap' => get_heatmap4(), 
 					  'userData' => user_firstSession(),
-					  'LayoutNoOfDiagrams' => 2,
-					  'NoOfDiagrams' => $counter);
+					  'LayoutNoOfDiagrams' => $layoutCounter,
+					  'NoOfDiagrams' => $diagramCounter);
 					  
 					  // connections -> all connections
 					  //Visaul elements -> all visual elements having connections to other elements

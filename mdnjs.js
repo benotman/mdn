@@ -12,7 +12,7 @@
 							 // , and number of highlighting requests for the element (made by other elements)
 	var svgElementHasConnections=false;
 	var flagKeepColor = false;
-	var displayedDiagrams=['svg1', 'svg2'];
+	var displayedDiagrams=[];
 	var layout;
 	
     var rect = {
@@ -77,20 +77,28 @@ function DiagramBrowserOK(){
 		}
 	}
 	
-	if(count < layout){
-		if(count = Drupal.settings.NoOfDiagrams){
-		   alert('The number of selected diagrams is ' + count + '\n it needs to be the same as the selected Layout');
-           return;		   
-		}
-		else{
-		   layout = count;
-		}
+	/*
+	 if(count >2)
+		 error
+	 else if 1
+	    layout = 1
+		CurrentDiagrams = 
+	 else if 2
+	 
+	 else 0
+	 
+	 onload
+	   I will get 0, 1, 2
+	   0 to 1 ok, 0 to 2 ok
+	   1 to 2 ok, 1 to 0 ok
+		 
+	*/
+	if(count > 2){
+		alert("You have selected " + count + " diagrams, Multiple Diagram Navigation supports only up to two diagrams. Please unselect some diagrams");
+		return;
 	}
-	else if(count > layout){
-	   alert('The number of selected diagrams is ' + count + '\n it needs to be the same as the selected Layout');
-       return;		   
-	} 
-	// count is now equal to layoutNoOfDiagrams
+
+	layout =count;
 	
 	var arg1; var arg2;
     if(count==1){
@@ -101,9 +109,16 @@ function DiagramBrowserOK(){
 		arg1=diagramArr[0]; 
 		arg2=diagramArr[1]; 
 	} 	
-		
-    jQuery("#AllSVGContainer").load("?q=mdn/diagrams/" + arg1 + "/" + arg2, DiagramBroswerOKCallBack);
-	jQuery.modal.close();
+	
+	if(count >0){
+  	   jQuery("#AllSVGContainer").load("?q=mdn/diagrams/" + arg1 + "/" + arg2, DiagramBroswerOKCallBack);
+	   jQuery.modal.close();
+	}
+	else {
+		jQuery("#AllSVGContainer").html('');
+		displayedDiagrams.length=0;
+		jQuery.modal.close();
+	}
 }
 
 function DiagramBroswerOKCallBack(){
@@ -118,7 +133,7 @@ function DiagramBroswerOKCallBack(){
     jQuery("svg[prepared='yes']").each(function( index ) {
        //console.log( index + ": " + jQuery( this ).attr("id") );
 	   displayedDiagrams[displayedDiagrams.length]=jQuery( this ).attr("id");
-	   
+ 	   
 	   relatedElements = jQuery.grep(visualElements, function(v,i) {
            return (v[0] === displayedDiagrams[displayedDiagrams.length -1] && v[6] === 1);     
        });
@@ -137,6 +152,17 @@ function DiagramBroswerOKCallBack(){
 	   
     });
 	
+    jQuery(".svgContainer").each(function( index ) {
+ 	    if(layout==1){
+	         jQuery( this ).removeClass("mdnDoubleLayout");
+	         jQuery( this ).addClass("mdnSingleLayout");
+	     }
+	     else if (layout == 2){
+ 	         jQuery( this ).removeClass("mdnSingleLayout");
+	         jQuery( this ).addClass("mdnDoubleLayout");
+	     }
+    });
+
 	
 }
 
@@ -164,6 +190,7 @@ function heatmap(){
   }
 	
 }
+
 var userDataCounter=-1;
 var userDataArr;
 
@@ -236,20 +263,6 @@ function fullScreen(){
 
 }
 
-function Layout(){
-	//jQuery.modal.close();
-	if (layout==2){
-	   jQuery(".svgContainer:nth-child(2)").html('');
-       layout=1;	   
-	   displayedDiagrams.length=0;
-	   displayedDiagrams[0]= jQuery(".svgContainer:nth-child(1)").attr("id");
-	}else if (layout==1){
-	   jQuery(".svgContainer:nth-child(2)").html('<p id="NoDiagramSelected"><br>No Diagram is Selected<br></p>');
-       layout=2;	   
-	}
-		
-}
-   
 function getIndexOfElement(arr, viewId, elemId){
     for(var i=0; i<arr.length; i++){
         if (arr[i][0] === viewId && arr[i][1] === elemId){
@@ -627,6 +640,23 @@ jQuery(document).ready(function($) {
 	 
 	 userDataArr = Drupal.settings.userData;
 	 layout = Drupal.settings.LayoutNoOfDiagrams;
+	 
+	 displayedDiagrams.length=0;
+	 jQuery("svg[prepared='yes']").each(function( index ) {
+         displayedDiagrams[displayedDiagrams.length]=jQuery( this ).attr("id");
+       
+     });
+	 
+	  jQuery(".svgContainer").each(function( index ) {
+ 	    if(layout==1){
+	         jQuery( this ).removeClass("mdnDoubleLayout");
+	         jQuery( this ).addClass("mdnSingleLayout");
+	     }
+	     else if (layout == 2){
+ 	         jQuery( this ).removeClass("mdnSingleLayout");
+	         jQuery( this ).addClass("mdnDoubleLayout");
+	     }
+      });
 });
 
 function SVGDisplayPreparation(){
