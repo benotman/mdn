@@ -104,12 +104,13 @@ svg {
 }
 
 .mdnFullScreen.mdnSingleLayout {
-  height: 98%;
-  display: inline-block;
-  margin-left: 2px;
-  margin-right: 2px;
+  height: 85%;
+  display: block;
 }
 
+#mdnButtonContainer{
+  height: 10%;
+}
 
 .mdnButton {
   color: #900;
