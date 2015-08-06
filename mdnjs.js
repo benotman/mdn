@@ -171,14 +171,17 @@ function heatmap(){
 
   for (var i=0;i<Drupal.settings.heatmap.length;i++){
 	  
-	  var value = ((Drupal.settings.heatmap[i][1] - 1) / (68 - 1));
+	  var minCount = Drupal.settings.heatmapMin;
+	  var maxCount = Drupal.settings.heatmapMax;
+	  console.log("MinHeatmap =" + Drupal.settings.heatmapMin + " MaxHeatmap =" + Drupal.settings.heatmapMax)
+	  var value = ((Drupal.settings.heatmap[i][1] - minCount) / (maxCount - minCount));
 	  var aR = 255;   var aG = 255; var aB=255;  // RGB for our 1st color (blue in this case).
       var bR = 0; var bG = 0; var bB=0;    // RGB for our 2nd color (red in this case).
  
       var red   = (bR - aR) * value + aR;      // Evaluated as -255*value + 255.
       var green = (bG - aG) * value + aG;      // Evaluates as 0.
       var blue  = (bB - aB) * value + aB;      // Evaluates as 255*value + 0.
-	  console.log(Math.round(red) + ' ' + Math.round(green) + ' ' + Math.round(blue));
+	 // console.log(Math.round(red) + ' ' + Math.round(green) + ' ' + Math.round(blue));
 	  var newRGB = 'rgba(' + Math.round(red) + ',' + Math.round(green) + ',' + Math.round(blue) + ',255)';
 	  //var newRGB = 'rgba(' + Math.round(red) + ',' + 0 + ',' + 0 + ',1)';
 	  if(Drupal.settings.heatmap[i][2] == 'AGView')
@@ -186,7 +189,7 @@ function heatmap(){
 	  else
 		  jQuery("#" + "svg2_" + Drupal.settings.heatmap[i][0]).css("fill",newRGB).css("opacity","1"); 
 	  
-	  console.log(Drupal.settings.heatmap[i][0] + " " + newRGB);
+	  //console.log(Drupal.settings.heatmap[i][0] + " " + newRGB);
   }
 	
 }
@@ -239,6 +242,19 @@ function displayDiagramBrowser(){
 	jQuery("#diagramBrowser").modal({
 		maxWidth:1000,
 		maxHeight:500
+	});
+}
+
+function connectionsLanuch(){
+	jQuery("#connectionsWindow").load("?q=mdn/connectionsWindow/", connectionsLanuchCallBack);
+	
+}
+
+function connectionsLanuchCallBack(){
+
+	jQuery("#connectionsWindow").modal({
+		minWidth:1000,
+		minHeight:500
 	});
 }
 
