@@ -117,3 +117,27 @@ svg {
   font-weight: bold;
   height:2em;
 }
+
+.connections_svgContainer{
+  width: 49%;
+  display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+/*
+Connections Window
+*/
+
+#diagramSelectionList1{
+   display: inline-block;
+}
+
+#connectionsWindowButtons{
+   display: inline-block;
+}
+
+#diagramSelectionList2{
+   display: inline-block;
+}
+

@@ -138,14 +138,14 @@ function get_mdn() {
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="fullScreen();">Full Screen</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="relatedContent();">Related Content</button>'
-				   . '<button type="submit" value="Submit" class="mdnButton" onClick="userData();">userData</button>';
+				   . '<button type="submit" value="Submit" class="mdnButton" onClick="heatmap();">userData</button>';
 
    if (user_access('diagram: Create new content')) {
       $resultHtml = $resultHtml 
-	               . '<button type="submit" value="Submit" class="mdnButton" onClick="userData();">Connections</button>';
+	               . '<button type="submit" value="Submit" class="mdnButton" onClick="connectionsLanuch();">Connections</button>';
    }				   
     
-	$resultHtml = $resultHtml 
+  $resultHtml = $resultHtml 
 			    .'</div>'
 			    .'<div id="AllSVGContainer">';
    
@@ -155,6 +155,13 @@ function get_mdn() {
 					      . '<button id="diagramBrowserOK" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserOK();">OK</button>'
 					      . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
 					    .'</div>';
+  $connectionWindow = '<div id="connectionsWindow"  style="display:none">'
+                        .'<form>'
+                           .'Node: '
+                           .'<input type="text" name="mdn2nodeName" class="connectionNode" id="mdnnodeName">' 
+                           .'<input type="text" name="mdn3nodeName" class="connectionNode" id="mdnnodeName">' 						   
+						.'</form>'
+					    .'</div>';	
 
    $diagramCounter=0;  
    $layoutCounter =0; // counting diagrams with displayonLoad = true (will be under 2)   
@@ -216,12 +223,16 @@ function get_mdn() {
  . '<p>You can press ESC to close this dialog or click <a href="#" class="simplemodal-close">close</a>.</p>'
  */
    
-   $resultHtml = $resultHtml . $diagramBrowser;
+   $resultHtml = $resultHtml . $diagramBrowser . $connectionWindow;
+   
+   $heatmapSQl = "SELECT sub_section, page_section, count(minid) as cnt FROM drupaltemplog group by sub_section,page_section";
    
    $settingsArr=array(
                       'connections' => get_connections(), 
 					  'visualElements' => get_visual_elements_with_connections(),
-					  'heatmap' => get_heatmap4(), 
+					  'heatmap' => get_heatmap5($heatmapSQl), 
+					  'heatmapMin' => min_heatmap($heatmapSQl), 
+					  'heatmapMax' => max_heatmap($heatmapSQl), 
 					  'userData' => user_firstSession(),
 					  'LayoutNoOfDiagrams' => $layoutCounter,
 					  'NoOfDiagrams' => $diagramCounter);
@@ -229,15 +240,38 @@ function get_mdn() {
 					  // connections -> all connections
 					  //Visaul elements -> all visual elements having connections to other elements
    drupal_add_js($settingsArr, 'setting');
-   
+    
+	
    return  $resultHtml;  
   
 }
 
+function min_heatmap($heatmapSQl){
+	$SQLStr = "select min(cnt) as minCnt from (" . $heatmapSQl . ") as t1";
+	$result = db_query($SQLStr);
+	$min=0;
+    foreach ($result as $record) {
+	  $min = $record->minCnt;
+	}
+return $min;
+}
+
+function max_heatmap($heatmapSQl){
+	$SQLStr = "select max(cnt) as maxCnt from (" . $heatmapSQl . ") as t1";
+	$result = db_query($SQLStr);
+	$max=0;
+    foreach ($result as $record) {
+	  $max = $record->maxCnt;
+	}
+return $max;
+}
+
+
 // function for research purposes, will be removed
-function get_heatmap(){
+function get_heatmap($heatmapSQl){
 	// range 7 to 124
-	$result = db_query("SELECT * FROM heatmapFirstSessionAllUsersHoverCount");
+	//$result = db_query("SELECT * FROM heatmapFirstSessionAllUsersHoverCount");
+	$result = db_query($heatmapSQl);
     $count=0;   
 	$arr=array();
     foreach ($result as $record) {
@@ -294,6 +328,74 @@ function get_heatmap4(){ //hover count for all users for second session
 	
 return $arr;
 }
+
+function get_heatmap5($heatmapSQl2){
+	prepare_heatmap5();
+	
+    $result = db_query($heatmapSQl2);
+    $count=0;   
+	$arr=array();
+    foreach ($result as $record) {
+	  $arr[$count][0] = $record->sub_section;
+	  $arr[$count][1] = $record->cnt;
+	  $arr[$count][2] = $record->page_section;
+      $count++;	 
+	}
+	
+    return $arr;
+}
+
+
+function prepare_heatmap5(){
+	db_delete('templog')->execute();
+  
+   $result = db_query("SELECT * FROM UserCleanGroupHover where (ACTION = 'hoverout' or ACTION = 'click2' or ACTION = 'page_lookup') order by user_id, minid");
+    $mode= 'regular';
+	$counter=0;
+	//$starting_time='';
+	$user_id ='';
+
+	foreach ($result as $record) {
+	 
+	 if($mode == 'regular'){
+  	      if(strtolower($record->sub_section) == 'sql injection' && $record->ACTION == 'page_lookup'){ //$record->sub_section == 'b15' && $record->ACTION == 'hoverout'
+		     $mode='harvest';
+			 $user_id =$record->user_id;
+			 //$starting_time = $record->action_time;
+			 $counter=0;
+	      }	
+	  }
+	  
+      else if($mode == 'harvest'){
+		  
+		if($counter <= 15 && $record->user_id == $user_id){
+	          
+		         //if($record->sub_section != 'b15'){ //true
+				     db_insert('templog') 
+                          ->fields(array(
+                              'user_id' => $record->user_id,
+                              'minid' => $record->minId,
+                              'page_section' => $record->page_section,
+							  'sub_section' => $record->sub_section,
+							  'action_time' => $record->action_time,
+							  'action' => $record->ACTION,
+                            ))->execute();
+						
+ 			         $counter++;
+				// }
+		}
+		else {
+			  if($counter > 15){
+				$mode= 'regular'; 
+			  }
+		}
+		
+	 }
+	  
+	
+    }
+}
+
 
 //SELECT * FROM `UserCleanGroupHover` WHERE (action ='hoverout' or action = 'click2') and (sub_section = 'b15' or sub_section = 'c31') order by user_id, minid
 /*
@@ -408,7 +510,14 @@ function mdn_menu() {
     'access arguments' => array('access content'),
 	'delivery callback' => 'mdn_diagram_browser_delivery', 
   );
-    
+
+  $items['mdn/connectionsWindow'] = array(
+    'page callback' => 'mdn_connections_window',
+	'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+	'delivery callback' => 'mdn_connections_window_delivery', 
+  );
+
   return $items;
 }
 
@@ -439,9 +548,87 @@ function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
 
 }
 
+
+
+function mdn_connections_window(){
+
+	$resultHtml = '<div id="connectionsWindowContainer">'
+	              .'<div id="connectionsWindowSidesContainer">';
+				  
+	$diagramDropDownList ='<option value="cnt1">Content: Drupal Nodes</option>';			  
+	
+	
+	$query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'node')
+	  ->entityCondition('bundle', 'diagram');
+	 // ->fieldOrderBy('field_display_on_load', 'value', 'DESC'); 
+	
+	$result = $query->execute();
+
+	if(!isset($result['node'])) { 
+		$resultHtml = '<p>No Diagrams Available</p>';
+		return $resultHtml;
+	}
+	
+	$diagrams_nids = array_keys($result['node']);
+    $diagrams = entity_load('node', $diagrams_nids);
+	
+	$counter=0;
+	foreach ($diagrams as $node) {
+	   $counter++;
+	   $diagramContents =  get_and_prepare_diagram($node); 
+
+	   if($counter == 1){
+	      $resultHtml = $resultHtml . '<div id ="connections_side1" class="connections_svgContainer">' . $diagramContents . '</div>';
+	   }
+	   if($counter == 2)	{
+	      $resultHtml = $resultHtml . '<div id ="connections_side2" class="connections_svgContainer">' . $diagramContents . '</div>';
+	   }
+       
+       $diagramDropDownList = $diagramDropDownList
+	                         . '<option value="' . $node->nid . '">' . $node->title . '</option>';			   	   
+	}
+	
+	$resultHtml = $resultHtml . '</div>'; //connectionsWindowSidesContainer
+	
+	    $resultHtml = $resultHtml . '<div id="connectionsWindowButtom">';
+	
+        $resultHtml = $resultHtml . '<div id="diagramSelectionList1Container">'
+                                       . '<select id="diagramSelectionList1" onChange="selectListChanged(this);">'
+									       . $diagramDropDownList
+									   . '<select>'
+			    				  . '</div>';
+		
+		$resultHtml = $resultHtml 
+		              . '<div id="connectionsWindowButtons">'
+		                     . '<button type="submit" value="Submit" class="mdnButton" onClick="CreateConnection();">Create Connection</button>'						  
+							 . '<button type="submit" value="Submit" class="mdnButton" onClick="DeleteConnection();">Delete Connection</button>'						  
+					  . '</div>';		 
+		
+		
+        $resultHtml = $resultHtml . '<div id="diagramSelectionList2Container">'
+                                       . '<select id="diagramSelectionList2" onChange="selectListChanged(this);">'
+									       . $diagramDropDownList
+									   . '<select>'
+			    				  . '</div>';
+							  
+    $resultHtml = $resultHtml . '</div>'; //connectionsWindowButtom							  
+  $resultHtml = $resultHtml . '</div>';	//connectionsWindowContainer 						  
+	
+	return $resultHtml;
+	
+}
+
+
 function mdn_diagram_browser_delivery($cnt){
 	 print $cnt;
 }
+
+
+function mdn_connections_window_delivery($cnt){
+	 print $cnt;
+}
+
 
 /*
 function ajax_link_response($type = 'ajax', $nid = 0) {

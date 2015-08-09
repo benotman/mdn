@@ -1,0 +1,339 @@
+CSS for connections window
+
+
+---------------------------------------------------------------
+Connections window
+Two sides
+
+I will start with (empty text box)
+  click VE, displays current nodes
+  Enter title in empty text box and connect
+  select few and delete connection
+
+empty text box --> 
+-- php, add drop down list
+-- add event click/change for drop-down list
+----- get content html from php
+-- 
+
+
+  
+
+view VE to VEs (hover and highlight)
+view VE to CEs (click and show a list of check boxes) no color is needed to highlight content elements
+view CE to VEs ()
+
+VE1 + VE2
+VE1 hover --> VE2 hover color 
+VE1 click --> nothing for VE2, click VE2 --> connection or delete_connection can be made
+
+VE1 + CE2
+VE1 hover --> 
+VE1 click --> display related CEs 
+VE1 unclick --> erase related CEs
+
+CE hover --> highlight related VEs
+CE click --> CE is selected nothing is made for VEs, if VE is selected a connect, unconnect can happen
+
+                            ,,,,,                                                                       
+							         
+
+connect VE to VE 
+
+
+
+
+side (either diagram or content)
+diagram selection drop-down list
+connect button
+delete_connection button
+clear selections
+
+
+@ change diagram-list to content:
+-- show empty text box(s)
+
+@ click on visual element 
+-- if other side is content
+	 show list of checkboxes and labels of related elements (unselected)
+	 show one or two empty text boxes for new entry
+
+
+
+@load 
+  if no diagrams ->
+  if one diagram -> display daiagram and content
+  if two display the onload if there is some 
+
+@ hover 
+-- hover related
+---- needs visual elements to retrieve related visual elements
+---- 
+---- How to show and allow deletion of related nodes: maybe a set of text boxes
+----- show options:
+--------- (text boxes) --> no advantage since users not supposed to edit connections
+--------- check boxes and labels --> users can select and delete 
+
+click is different 
+  
+  
+CSS
+
+
+  
+		 
+Plan 
+Play with height: try to insure site is good for some window sizes
+- 50%
+- 
+SELECT MIN( id ) AS minId, user_id, action_time, page_section, sub_section, 
+ACTION FROM  `user_clean` 
+GROUP BY user_id, action_time, page_section, sub_section
+ORDER BY minId
+
+1181
+2006
+2664
+4468
+4494
+7509
+8979
+
+
+
+7/18/2015
+Users: What do I need? need to know vocab of users. need to know how user navigation is stored in db, 
+need to know where it is stored (DB or cookie)
+I expect Drupal to save 
+
+/*
+Overall algorithm for diagrams and layout
+
+-- Variables --
+LayoutNoOfDiagrams
+NoOfDiagrams
+displayedDiagrams 
+
+VisualElements
+Connections
+
+
+-- Load --
+always load two diagrams (default value)
+
+NoOfDiagrams = getNoOfDiagrams()
+connections - getConnections
+visualELements = getVisualElements
+LayoutNoOfDiagrams = 2 (default)
+
+check LayoutNoOfDiagrams with NoOfDiagrams
+					   
+					   
+iterate over the display on load (top LayoutNoOfDiagrams)
+  pull the diagrams
+  prepare unprepared diagrams
+  fill in the mdn div with svg content
+return mdn div
+
+-- select diagrams --
+if # of selected < LayoutNoOfDiagrams
+   if # of selected < NoOfDiagrams
+      error
+	  return (stay in the same screen)
+   else
+      OK
+	  change LayoutNoOfDiagrams = # of selected
+if # of selected > LayoutNoOfDiagrams	  
+   error
+   return (stay in the same screen)
+
+
+load diagram 
+function in php (list of diagrams to display)    
+  returns html for mdn
+ 
+   
+for all diagrams
+  
+
+-- configuration --
+Layout (no of Diagrams) (button on MDN)
+
+*/
+
+- buttons: clear, full screen, related content, diagram browser, layout 
+diagram browser ideas:
+- inline images selector
+- get all thumbnails of all diagrams
+- display inline with scroll bar (vertical) how?
+--- display titles beneath
+- allow select / deselect
+- ok / cancel
+
+on return
+change current diagrams
+highlight new diagrams according to visual elements
+
+
+diagram browser: inline blocks 
+
+- Connector: 
+two sides
+button: select each side
+- each side has to be different
+- side is a diagram or content searcher
+connect by drag
+button: connect (one selection in one side and multiple on the other)
+button: delete connection
+-- select one element in one side and one or more in the other 
+-- if elements are connected select them
+-- delete will be enabled
+-- enable/disable zooming and panning
+    
+
+/*
+************  To DO List
+- Modify Document.ready to load orginal style for only displayed diagrams
+-- Whenever we load hidden diagram for the first time, we save original style then we update element styles according 
+   to visual elements array
+
+related_highlighted_elements
+  changed or not
+
+hover 
+  hover related vosual elements
+
+select
+  element related to visual element and content elements -> select
+  related to visual elements only -> select so a user can see related elements in other diagrams
+  related to content elements only -> yes, so a user can see retrieve content elements and see false (no )   
+  
+  element with no connections -> discard
+  
+  element with connections
+    allow hover
+	   current element is ok (since element is already displayed)
+	   related elements in displayed diagrams -> ok
+	   related elements in undisplayed diagrams -> discard
+	   
+	   so highlightedelements array contain only elements in displayed diagrams
+	allow selection
+
+***Diagrams ***	
+- We have several diagrams
+- we start with on-load diagrams
+--- we have connections array for onload diagrams + content (CHANGE to ALL Diagrams)
+--- we have list of visual elements for onload diagrams (CHANGE to ALL Diagrams) 
+--- we need to have array_Current_Diagrams
+
+in mouseHover
+   change to hoverStyle if element has connections to anything (content, displayed diagrams, hidden diagrams)
+      This to indicate the element is clickable
+   retrieve connections to visual elements in displayed diagrams
+   
+in click
+   select element if it has connections to anything (basically if an element is hoverable it is selectable)
+   update the list of visual elements 
+
+When displaying a hidden diagram
+   check if there is highlighted elements exist -> change their style
+When hiding a diagram current element styles are kept in the visual elements array
+   the diagram will probably be removed from the html
+when redisplaying a diagram update element styles according to the list of visual elements
+
+   
+
+------ connections to visual elements to currently displayed diagrams  
+- user can load other diagrams any time
+-  we add  
+	
+diagrams
+  selection window
+  load diagram, load connections
+  
+  
+    
+
+
+// styles
+   diagram selection, hover, highlighted should be the same (to be understandable)
+
+
+   send element id only
+   I can have a property of the svg_id in each element
+   in generic event handler, extract the svg_id when calling connections
+   
+   item_id, original fill, ..., # of incoming highlighting requests
+   
+   
+   load all visual elements (that have connections) for default diagrams (then load visual elements for later loaded diagrams)
+   
+   element_id, original_color, # of incoming highlighting
+   I worked less hours today as I was busy with family paperwork. I am still working on element selection. I thought I can save the original style of each diagram element in its dom element but that does not seem to work; both jQuery and regular dom methods return errors. I think  that is because of the custom attribute I am adding to the svg. Now I am changing to passing a list of all diagram elements with their styles from php to javascript. I am including only elements which have connections to other elements in other diagrams.    
+   
+   
+   when click
+     when change to selected 
+	    if not in array add it with color saved before hover
+        		
+	 when restore to highlighted
+	 
+	 when 
+         
+   
+   when do I change style
+   select
+      for first time (not found in array)
+	    add item in array with original color (saved before hover)
+	  else
+        		  
+   hoverout
+   
+hover 
+  I need to save regular, hover, select, and related colours 
+    hover (change current element using hover class e.g. diagram1:hover fill = )
+    mousehover
+      related elements -> save their style then change their style
+    mouseout
+      related elements -> go back to original style
+
+	
+	changes possible when a mouse enters an element
+	  0 -> 1 unselected to selected
+	  selected to unselected
+	  unselected to highlighted (impossible)
+	  highlighted to unselected (inpossible)
+	  highlighted to selected
+	  selected to highlighted
+	
+flag keepColor	
+	
+    click_event	 
+	  if(current is unselected or highlighted) // add status to array (0 unselected, 1 selected, 2 highlighted)
+         change current to selected
+	     highlight_related(viewid, id)
+		   related = grep related elements in connections
+		   for each i element in related
+		      if i exist in highlighted
+			    increment highlighted_count
+			  else
+                add i to highlighted and change color to highlighted				  
+	  else // current is selected
+		 if (highlight_count >0)
+			change current to highlighted (diagram highlighted color)
+         else
+            change current to regular
+         end if
+		 unhighlight_related(viewid, id)
+		   grep related elements from connections
+		      grep related from highlighted
+			    decrease and if anyone is 0 => unhighlight
+      end if		 
+      related elements -> 
+
+regular, selected, highlighted	 
+   show related content (button)	 
+      
+  class hover can change current element 
+  change class 
+*/
