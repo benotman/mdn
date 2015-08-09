@@ -552,7 +552,10 @@ function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
 
 function mdn_connections_window(){
 
-	$resultHtml = '<div id="connectionsWindowContainer">';
+	$resultHtml = '<div id="connectionsWindowContainer">'
+	              .'<div id="connectionsWindowSidesContainer">';
+				  
+	$diagramDropDownList ='<option value="cnt1">Content: Drupal Nodes</option>';			  
 	
 	
 	$query = new EntityFieldQuery();
@@ -561,39 +564,59 @@ function mdn_connections_window(){
 	 // ->fieldOrderBy('field_display_on_load', 'value', 'DESC'); 
 	
 	$result = $query->execute();
-	
 
-	if(isset($result['node'])) { 
-       $diagrams_nids = array_keys($result['node']);
-       $diagrams = entity_load('node', $diagrams_nids);
-	   
-    }
-	else{ // no diagrams, return empty window
-		$resultHtml = $resultHtml . 'No Diagrams Available' . '</div>';
+	if(!isset($result['node'])) { 
+		$resultHtml = '<p>No Diagrams Available</p>';
 		return $resultHtml;
 	}
-		
 	
+	$diagrams_nids = array_keys($result['node']);
+    $diagrams = entity_load('node', $diagrams_nids);
 	
 	$counter=0;
 	foreach ($diagrams as $node) {
-	   	
-	   $diagramContents =  get_and_prepare_diagram($node); 
-	   $resultHtml = $resultHtml . '<div class="connections_svgContainer">' . $diagramContents . '</div>';
 	   $counter++;
-	   if($counter >= 2)
-		   break;
+	   $diagramContents =  get_and_prepare_diagram($node); 
+
+	   if($counter == 1){
+	      $resultHtml = $resultHtml . '<div id ="connections_side1" class="connections_svgContainer">' . $diagramContents . '</div>';
+	   }
+	   if($counter == 2)	{
+	      $resultHtml = $resultHtml . '<div id ="connections_side2" class="connections_svgContainer">' . $diagramContents . '</div>';
+	   }
+       
+       $diagramDropDownList = $diagramDropDownList
+	                         . '<option value="' . $node->nid . '">' . $node->title . '</option>';			   	   
 	}
 	
-	$resultHtml = $resultHtml . $counter . '</div>'; 
+	$resultHtml = $resultHtml . '</div>'; //connectionsWindowSidesContainer
+	
+	    $resultHtml = $resultHtml . '<div id="connectionsWindowButtom">';
+	
+        $resultHtml = $resultHtml . '<div id="diagramSelectionList1Container">'
+                                       . '<select id="diagramSelectionList1" onChange="selectListChanged(this);">'
+									       . $diagramDropDownList
+									   . '<select>'
+			    				  . '</div>';
+		
+		$resultHtml = $resultHtml 
+		              . '<div id="connectionsWindowButtons">'
+		                     . '<button type="submit" value="Submit" class="mdnButton" onClick="CreateConnection();">Create Connection</button>'						  
+							 . '<button type="submit" value="Submit" class="mdnButton" onClick="DeleteConnection();">Delete Connection</button>'						  
+					  . '</div>';		 
+		
+		
+        $resultHtml = $resultHtml . '<div id="diagramSelectionList2Container">'
+                                       . '<select id="diagramSelectionList2" onChange="selectListChanged(this);">'
+									       . $diagramDropDownList
+									   . '<select>'
+			    				  . '</div>';
+							  
+    $resultHtml = $resultHtml . '</div>'; //connectionsWindowButtom							  
+  $resultHtml = $resultHtml . '</div>';	//connectionsWindowContainer 						  
+	
 	return $resultHtml;
 	
-	  //->entityCondition('entity_id', array($diagram1_nid, $diagram2_nid), 'IN');                    
-	// ->fieldCondition('field_display_on_load', 'value', 1, '=');
-	// 
-
-
-
 }
 
 

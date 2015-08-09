@@ -251,11 +251,31 @@ function connectionsLanuch(){
 }
 
 function connectionsLanuchCallBack(){
+    
 
 	jQuery("#connectionsWindow").modal({
 		minWidth:1000,
 		minHeight:500
 	});
+}
+
+function selectListChanged(theElement){
+	var side1='';
+	var side2='';
+	
+	if(theElement.id == 'diagramSelectionList1'){
+		side1= 'diagramSelectionList1';
+		side2= 'diagramSelectionList2';
+	}
+	else{
+		side1= 'diagramSelectionList2';
+		side2= 'diagramSelectionList1';
+	}
+	
+	if(jQuery('#' + side1).val() == jQuery('#' + side2).val()){
+		alert("The two sides of the window have to show different diagrams or a diagram and content");
+		return;
+	}
 }
 
 function fullScreen(){
@@ -265,8 +285,11 @@ function fullScreen(){
 	});
 	
 	jQuery("#mdnContainer").modal({
-		minWidth: jQuery(window).width(),
-		minHeight: jQuery(window).height(),
+		maxWidth: Math.round(jQuery(window).width() * 7 /10),
+		maxHeight:  Math.round(jQuery(window).height() * 7 /10),
+		minWidth: Math.round(jQuery(window).width() * 7 /10),
+		minHeight:  Math.round(jQuery(window).height() * 7 /10),
+		
 		persist:true,
 		onClose: function (dialog){
 		   	jQuery(".svgContainer").each(function(index){

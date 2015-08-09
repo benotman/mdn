@@ -124,3 +124,20 @@ svg {
   margin-left: 2px;
   margin-right: 2px;
 }
+
+/*
+Connections Window
+*/
+
+#diagramSelectionList1{
+   display: inline-block;
+}
+
+#connectionsWindowButtons{
+   display: inline-block;
+}
+
+#diagramSelectionList2{
+   display: inline-block;
+}
+
