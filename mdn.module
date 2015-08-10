@@ -570,7 +570,7 @@ function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
 function mdn_connections_window(){
 
 	$resultHtml = '<div id="connectionsWindowContainer">'
-	              .'<div id="connectionsWindowSidesContainer">';
+	              .'<div class="connectionsSVGContainer" id="connectionsWindowSidesContainer">';
 				  
 	$diagramDropDownList ='';			  
 	

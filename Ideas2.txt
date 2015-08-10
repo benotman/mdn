@@ -16,8 +16,26 @@ empty text box -->
 ----- get content html from php
 -- 
 
+I will copy then cut some code to put in generic functions
 
-  
+
+
+hover
+ all do not exclude any
+ hoverHighlight related elements in the other diagram  
+ keep colors (do i need it) I will keep original color and selected color
+
+Use case scenarios
+-- wanna see available connections -> hover
+-- wanna connect select in each side, hit connect
+-- what about light green highlighting (confusing if multiple selections are allowed , you do not know which is connected to which)
+                                       ( not confusing if only single connections allowed)
+-- multiple selections may lead to wrong connections
+-- multiple selections can be done one at a time safely, we do not clear selection after connections have been made
+-- select one in one side, select one or more on the other --> connect --> keep selections
+-- clear selections for each side
+-- change diagram clears selections array on that side									   
+ 
 
 view VE to VEs (hover and highlight)
 view VE to CEs (click and show a list of check boxes) no color is needed to highlight content elements

@@ -12,7 +12,8 @@
 							 // , and number of highlighting requests for the element (made by other elements)
 	var svgElementHasConnections=false;
 	var flagKeepColor = false;
-	var displayedDiagrams=[];
+	var displayedDiagrams=[]; // displayed diagrams for main window
+	connectionsWindow_displayedDiagrams =[]; // // displayed diagrams for connections window
 	var layout;
 	
     var rect = {
@@ -122,7 +123,7 @@ function DiagramBrowserOK(){
 }
 
 function DiagramBroswerOKCallBack(){
-   SVGDisplayPreparation();
+   	 SVGDisplayPreparation("svgContainer", sendClickToParentDocument, sendMouseOverToParentDocument, sendMouseOutToParentDocument);
    /*
    get all svg ids
    add them to displayedDiagrams
@@ -251,8 +252,13 @@ function connectionsLanuch(){
 }
 
 function connectionsLanuchCallBack(){
-    
+    SVGDisplayPreparation("connectionsSVGContainer", sendClickToParentDocument2, sendMouseOverToParentDocument2, sendMouseOutToParentDocument2);
 
+	connectionsWindow_displayedDiagrams.length=0;
+	 jQuery(".connectionsSVGContainer svg[prepared='yes']").each(function( index ) {
+         connectionsWindow_displayedDiagrams[connectionsWindow_displayedDiagrams.length]=jQuery( this ).attr("id");
+     });
+	
 	jQuery("#connectionsWindow").modal({
 		maxWidth: Math.round(jQuery(window).width() * 10 /10),
 		maxHeight:  Math.round(jQuery(window).height() * 10 /10),
@@ -318,7 +324,7 @@ function getIndexOfElement(arr, viewId, elemId){
     }
 	return -1;
 }
-   
+
 function svgElementClicked(theElement){
       //jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
 	   //window.open("?q=mdn/get/ajax/" + viewid + "/" + theElement.id, "_self");
@@ -397,6 +403,10 @@ function svgElementClicked(theElement){
 			
 }
 
+function svgElementClicked_svgElementMouseOut(theElement){
+
+}
+
 function relatedVisualElementsInDisplayedDiagrams(viewId, elementId){
 	var result=[];
 	var relatedElements=[];
@@ -431,6 +441,43 @@ svgElementHasConnections = false
 svgElementHasConnections = true
     
 */   	   
+function ConnectionsWindow_svgElementMouseOver(theElement){
+	var IDs = getViewElementIDs(theElement.id);						  
+
+    var relatedElements = jQuery.grep(visualElements, function(v,i) { // if element is in visualElements then this element has 
+           return (v[0] === IDs[0] && v[1] === IDs[1]);              // we make it hoverable and clickable   
+    });
+   
+ 
+  	CurrentHoverFill= jQuery("#" + theElement.id).css("fill"); 
+    CurrentHoverStroke= jQuery("#" + theElement.id).css("stroke"); 
+    CurrentHoverStrokeWidth= jQuery("#" + theElement.id).css("stroke-width"); 
+    CurrentHoverOpacity=jQuery("#" + theElement.id).css("opacity");  
+		
+	changeStyle(theElement.id,'hover',0);		
+		
+    flagKeepColor = false; // after mouseover, if mouseclick is fired and element style is changed
+                               // this flag will equal true so mouseout will not restore element style		
+		
+	//search for related visual elements in displayed diagrams
+	var relVisDispElems = relatedVisualElementsInDisplayedDiagrams(IDs[0], IDs[1]);
+		
+	//save style for related elements in other diagrams so we can restore the style in mouseout
+    relatedHighlightedElements.length=0; 
+    for( var i = 0, len = relVisDispElems.length; i < len; i++ ) {
+		otherId = relVisDispElems[i][0] + '_' + relVisDispElems[i][1];
+	    relatedHighlightedElements[relatedHighlightedElements.length]= [relVisDispElems[i][0],
+		                                                                relVisDispElems[i][1],
+		                                                    jQuery("#" + otherId).css("fill"),
+															jQuery("#" + otherId).css("stroke"),
+															jQuery("#" + otherId).css("stroke-width"),
+														    jQuery("#" + otherId).css("opacity"),
+															false]; // flagKeepColor for this element
+																		
+	    changeStyle(otherId, 'hover',0);
+	} // end for
+}
+
 function svgElementMouseOver(theElement){
 
    /* an old way of retrieving connections using ajax
@@ -595,6 +642,10 @@ function svgElementMouseOut(theElement){
 	CurrentHoverElement="";
 }	
 
+function ConnectionsWindow_svgElementMouseOut(theElement){
+	
+}
+
 function relatedContent(){
 	/*
 	  Get selections from visualElements
@@ -625,52 +676,69 @@ function relatedContent(){
 
 function sendClickToParentDocument(evt)
 	{
-	   //console.log(evt.target.getAttribute("id") + " " + evt.currentTarget.getAttribute("id"));
-	   //evt.stopPropagation();
-	   // SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
-	    //evt.cancelBubble = true;
+		var target = evt.currentTarget;
+		if(target.correspondingUseElement)
+			target = target.correspondingUseElement;
+
+		if (parent.svgElementClicked)
+			parent.svgElementClicked(target); // after finishing svg loader and identifier, I will have svg id embedded in each element id 
+	}
+
+function sendClickToParentDocument2(evt)
+	{
 		var target = evt.currentTarget;
 		if(target.correspondingUseElement)
 			target = target.correspondingUseElement;
         
 		
-        // call a method in the parent document if it exists
-        if (parent.svgElementClicked)
-			parent.svgElementClicked(target); // after finishing svg loader and identifier, I will have svg id embedded in each element id 
-		//else
-		//	alert("Error: Function svgElementClicked does not exist");
+        if (parent.ConnectionsWindow_svgElementClicked)
+			parent.ConnectionsWindow_svgElementClicked(target); // after finishing svg loader and identifier, I will have svg id embedded in each element id 
 	}
-		
+	
 	function sendMouseOverToParentDocument(evt)
 	{
-	  // SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
 	  var target = evt.currentTarget;
 	  if(target.correspondingUseElement)
 		  target = target.correspondingUseElement;
       
-      // call a method in the parent document if it exists
       if (window.parent.svgElementMouseOver)
 		  window.parent.svgElementMouseOver(target);
-	  //else
-		//  alert("Error: Function svgElementMouseOver does not exist");
+
 	}
 
-	function sendMouseOutToParentDocument(evt)
+	function sendMouseOverToParentDocument2(evt)
 	{
-	  // SVGElementInstance objects aren't normal DOM nodes, so fetch the corresponding 'use' element instead
 	  var target = evt.currentTarget;
 	  if(target.correspondingUseElement)
 		  target = target.correspondingUseElement;
       
-      // call a method in the parent document if it exists
+      if (window.parent.ConnectionsWindow_svgElementMouseOver)
+		  window.parent.ConnectionsWindow_svgElementMouseOver(target);
+
+	}
+	
+	function sendMouseOutToParentDocument(evt)
+	{
+	  var target = evt.currentTarget;
+	  if(target.correspondingUseElement)
+		  target = target.correspondingUseElement;
+      
       if (window.parent.svgElementMouseOut)
 		  window.parent.svgElementMouseOut(target);
-	//  else
-		//  alert("Error: Function svgElementMouseOut does not exist");
 	}	
 
+	function sendMouseOutToParentDocument2(evt)
+	{
+	  var target = evt.currentTarget;
+	  if(target.correspondingUseElement)
+		  target = target.correspondingUseElement;
+      
+      if (window.parent.ConnectionsWindow_svgElementMouseOut)
+		  window.parent.ConnectionsWindow_svgElementMouseOut(target);
+	}		
+
 jQuery(document).ready(function($) {
-	 SVGDisplayPreparation();
+	 SVGDisplayPreparation("svgContainer", sendClickToParentDocument, sendMouseOverToParentDocument, sendMouseOutToParentDocument);
 	 var elemId='';
 	 for (var i=0;i<Drupal.settings.visualElements.length;i++){
         elemId ="#" + Drupal.settings.visualElements[i][0] + '_' + Drupal.settings.visualElements[i][1];
@@ -689,9 +757,8 @@ jQuery(document).ready(function($) {
 	 layout = Drupal.settings.LayoutNoOfDiagrams;
 	 
 	 displayedDiagrams.length=0;
-	 jQuery("svg[prepared='yes']").each(function( index ) {
+	 jQuery(".svgContainer svg[prepared='yes']").each(function( index ) {
          displayedDiagrams[displayedDiagrams.length]=jQuery( this ).attr("id");
-       
      });
 	 
 	  jQuery(".svgContainer").each(function( index ) {
@@ -706,25 +773,31 @@ jQuery(document).ready(function($) {
       });
 });
 
-function SVGDisplayPreparation(){
+function SVGDisplayPreparation(containerClass, clickFunction, mouseoverFunction, mouseoutFunction){
 	
-     var arr = document.getElementsByTagName("path");
-	for (var i = 0; i < arr.length; i++) { 
-	   arr[i].addEventListener("click", sendClickToParentDocument, false);
-	   arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
-	   arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
+     var arrParents = document.getElementsByClassName(containerClass);
+	// var ff = sendMouseOverToParentDocument;
+	 for(var j = 0; j < arrParents.length; j++){
+	    var arr = arrParents[j].getElementsByTagName("path");	 
 	   
-	}
+	   	for (var i = 0; i < arr.length; i++) { 
+//	       arr[i].addEventListener("click", sendClickToParentDocument, false);
+	//       arr[i].addEventListener("mouseover", ff, false);
+	  //     arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
+  	       arr[i].addEventListener("click", clickFunction, false);
+	       arr[i].addEventListener("mouseover", mouseoverFunction, false);
+	       arr[i].addEventListener("mouseout", mouseoutFunction, false);
+	    }
+	   
+	   	arr = arrParents[j].getElementsByTagName("ellipse");
+	    for (var i = 0; i < arr.length; i++) { 
+	      arr[i].addEventListener("click", clickFunction, false);
+	      arr[i].addEventListener("mouseover", mouseoverFunction, false);
+	      arr[i].addEventListener("mouseout", mouseoutFunction, false);
+	    }
+	 }
 
-	arr = document.getElementsByTagName("ellipse");
-	for (var i = 0; i < arr.length; i++) { 
-	   arr[i].addEventListener("click", sendClickToParentDocument, false);
-	   arr[i].addEventListener("mouseover", sendMouseOverToParentDocument, false);
-	   arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
-	   
-	}
-   
-     jQuery("svg[hide_elements='1'] path").css("opacity","0");
-	 jQuery("svg[hide_elements='1'] ellipse").css("opacity","0");
-	 jQuery("svg text").css("pointer-events","none");
+     jQuery("." + containerClass + " svg[hide_elements='1'] path").css("opacity","0");
+	 jQuery("." + containerClass + " svg[hide_elements='1'] ellipse").css("opacity","0");
+	 jQuery("." + containerClass + " text").css("pointer-events","none");
 }
