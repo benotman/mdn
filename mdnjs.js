@@ -254,28 +254,36 @@ function connectionsLanuchCallBack(){
     
 
 	jQuery("#connectionsWindow").modal({
-		minWidth:1000,
-		minHeight:500
+		maxWidth: Math.round(jQuery(window).width() * 10 /10),
+		maxHeight:  Math.round(jQuery(window).height() * 10 /10),
+		minWidth: Math.round(jQuery(window).width() * 10 /10),
+		minHeight:  Math.round(jQuery(window).height() * 10 /10)
 	});
 }
 
 function selectListChanged(theElement){
-	var side1='';
-	var side2='';
+	var thisSide='';
+	var otherSide='';
 	
 	if(theElement.id == 'diagramSelectionList1'){
-		side1= 'diagramSelectionList1';
-		side2= 'diagramSelectionList2';
+		thisSide= '1';
+		otherSide= '2';
 	}
 	else{
-		side1= 'diagramSelectionList2';
-		side2= 'diagramSelectionList1';
+		thisSide= '2';
+		otherSide= '1';
 	}
 	
-	if(jQuery('#' + side1).val() == jQuery('#' + side2).val()){
+	if(jQuery('#diagramSelectionList' + thisSide).val() == jQuery('#diagramSelectionList' + otherSide).val()){
 		alert("The two sides of the window have to show different diagrams or a diagram and content");
 		return;
 	}
+	
+	jQuery("#connections_side" + thisSide).load("?q=mdn/getDiagram/" + jQuery('#diagramSelectionList' + thisSide).val(), selectListChangedCallBack);
+}
+
+function selectListChangedCallBack(){
+	
 }
 
 function fullScreen(){

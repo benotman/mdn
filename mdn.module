@@ -517,9 +517,26 @@ function mdn_menu() {
     'access arguments' => array('access content'),
 	'delivery callback' => 'mdn_connections_window_delivery', 
   );
-
+  
+  $items['mdn/getDiagram'] = array(
+    'page callback' => 'get_diagram',
+	'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+	'delivery callback' => 'get_diagram_delivery', 
+  );
+  
   return $items;
 }
+
+function get_diagram($diagram_nid){
+	$nodes = entity_load('node', array($diagram_nid));
+	return get_and_prepare_diagram(array_shift($nodes));
+}
+
+function get_diagram_delivery($cnt){
+	 print $cnt;
+}
+
 
 function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
    
@@ -555,7 +572,7 @@ function mdn_connections_window(){
 	$resultHtml = '<div id="connectionsWindowContainer">'
 	              .'<div id="connectionsWindowSidesContainer">';
 				  
-	$diagramDropDownList ='<option value="cnt1">Content: Drupal Nodes</option>';			  
+	$diagramDropDownList ='';			  
 	
 	
 	$query = new EntityFieldQuery();
@@ -580,37 +597,52 @@ function mdn_connections_window(){
 
 	   if($counter == 1){
 	      $resultHtml = $resultHtml . '<div id ="connections_side1" class="connections_svgContainer">' . $diagramContents . '</div>';
+		  //$diagramDropDownList = $diagramDropDownList
+	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
+			$nid1 = $node->nid;
+			$title1 = $node->title;
 	   }
-	   if($counter == 2)	{
+	   else if($counter == 2){
 	      $resultHtml = $resultHtml . '<div id ="connections_side2" class="connections_svgContainer">' . $diagramContents . '</div>';
+		  //$diagramDropDownList = $diagramDropDownList
+	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
+			$nid2 = $node->nid;
+			$title2 = $node->title;
 	   }
-       
+	   else{
        $diagramDropDownList = $diagramDropDownList
 	                         . '<option value="' . $node->nid . '">' . $node->title . '</option>';			   	   
+	   }
 	}
 	
 	$resultHtml = $resultHtml . '</div>'; //connectionsWindowSidesContainer
 	
 	    $resultHtml = $resultHtml . '<div id="connectionsWindowButtom">';
 	
-        $resultHtml = $resultHtml . '<div id="diagramSelectionList1Container">'
-                                       . '<select id="diagramSelectionList1" onChange="selectListChanged(this);">'
-									       . $diagramDropDownList
-									   . '<select>'
-			    				  . '</div>';
+        $resultHtml = $resultHtml  . '<select id="diagramSelectionList1" onChange="selectListChanged(this);">'
+									       . '<option value="cnt1">Content: Drupal Nodes</option>'
+										   . '<option value="' . $nid1 . '"  selected="selected">' . $title1 . '</option>'
+										   . '<option value="' . $nid2 . '">' . $title2 . '</option>'
+										   . $diagramDropDownList
+									. '<select>';
+									
+	// . '<div id="diagramSelectionList1Container">' . '</div>';
 		
 		$resultHtml = $resultHtml 
-		              . '<div id="connectionsWindowButtons">'
-		                     . '<button type="submit" value="Submit" class="mdnButton" onClick="CreateConnection();">Create Connection</button>'						  
-							 . '<button type="submit" value="Submit" class="mdnButton" onClick="DeleteConnection();">Delete Connection</button>'						  
-					  . '</div>';		 
+		                 . '<button type="submit" value="Submit" class="mdnButton" onClick="CreateConnection();">Create Connection</button>'						  
+					     . '<button type="submit" value="Submit" class="mdnButton" onClick="DeleteConnection();">Delete Connection</button>';
+
+		 //. '<div id="connectionsWindowButtons">' . '</div>';		 
 		
 		
-        $resultHtml = $resultHtml . '<div id="diagramSelectionList2Container">'
-                                       . '<select id="diagramSelectionList2" onChange="selectListChanged(this);">'
+        $resultHtml = $resultHtml . '<select id="diagramSelectionList2" onChange="selectListChanged(this);">'
+									       . '<option value="cnt1">Content: Drupal Nodes</option>'
+										   . '<option value="' . $nid1 . '">' . $title1 . '</option>'
+										   . '<option value="' . $nid2 . '"  selected="selected">' . $title2 . '</option>'
 									       . $diagramDropDownList
-									   . '<select>'
-			    				  . '</div>';
+								  . '<select>';
+
+//. '<div id="diagramSelectionList2Container">'  . '</div>';
 							  
     $resultHtml = $resultHtml . '</div>'; //connectionsWindowButtom							  
   $resultHtml = $resultHtml . '</div>';	//connectionsWindowContainer 						  
