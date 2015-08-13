@@ -1,3 +1,6 @@
+next is relatedVisualElementsInDisplayedDiagrams
+
+
 CSS for connections window
 
 

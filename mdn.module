@@ -525,7 +525,23 @@ function mdn_menu() {
 	'delivery callback' => 'get_diagram_delivery', 
   );
   
+  $items['mdn/createConnection'] = array(
+    'page callback' => 'mdn_create_connection',
+	'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
   return $items;
+}
+
+function mdn_create_connection($view1, $element1, $view2, $element2){
+	
+	db_insert('Connections') 
+    ->fields(array(
+       'view1' => $view1,
+       'element1' => $element1,
+       'view2' => $view2,
+       'element2' => $element2,
+   ))->execute();
 }
 
 function get_diagram($diagram_nid){
