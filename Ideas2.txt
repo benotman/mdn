@@ -3,7 +3,28 @@ next is relatedVisualElementsInDisplayedDiagrams
 
 CSS for connections window
 
+view content browser --> text box only
+   if no VE is selected do not allow entering node title
+   if multiple VEs are selected --> do not allow entering node title
+     in onCHANGE, check lenght of selection array, and alert if length >1
+   
+   in enter --> if only one VE selected
+      store connection 
+      copy title to a new text box, add the nid as property 
+      add text box above current text box
+      clean working textbox
 
+contentBlock   connectionsWindow
+               side1   side2
+			   
+diagrams case
+display:none   display 100%
+               side1 48%   side2%
+			 
+content-diagram case
+show  48%         display 48%			 
+ 	           side1 or side2 100%
+			   
 ---------------------------------------------------------------
 Connections window
 Two sides
