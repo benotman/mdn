@@ -119,8 +119,13 @@ svg {
 }
 
 .connections_svgContainer{
-  width: 49%;
+  width: 35%;
   display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+#contentBrowser {
+  width: 20%;
   margin-left: 2px;
   margin-right: 2px;
 }
@@ -144,3 +149,10 @@ buttons strip
    display: inline-block;
 }
 
+#connectionWindowStatus {
+   color: white;
+}
+
+.connectionTextbox {
+	display: inline-block;
+}

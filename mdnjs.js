@@ -15,9 +15,10 @@
 	var displayedDiagrams=[]; // displayed diagrams for main window
 	var connectionsWindow_displayedDiagrams =[]; // // displayed diagrams for connections window
 	var connectionsWindow_selections=[];
-	var connectionsWindow_selections=[];
 	var con_window_class =".connectionsSVGContainer"; 
 	var CW_original_styles = [];
+	
+	var thisSide=0;
 	
 	var layout;
 	
@@ -253,10 +254,16 @@ function displayDiagramBrowser(){
 
 function connectionsLanuch(){
 	jQuery("#connectionsWindow").load("?q=mdn/connectionsWindow/", connectionsLanuchCallBack);
-	
 }
 
 function connectionsLanuchCallBack(){
+	//console.log("test" + jQuery("#connectionsWindow").html());
+	
+	if(jQuery("#connectionsWindow").html() == 'No Diagrams Available'){
+	    alert('No diagrams are found in your site. \nYou need at least one diagram to start connecting diagram elements to Drupal nodes. In case of diagram to diagram connections, you need at leaast two diagrams');
+        return;	   
+	}
+	
     SVGDisplayPreparation("connectionsSVGContainer", sendClickToParentDocument2, sendMouseOverToParentDocument2, sendMouseOutToParentDocument2);
 
 	connectionsWindow_displayedDiagrams.length=0;
@@ -268,7 +275,7 @@ function connectionsLanuchCallBack(){
 	 CW_original_styles[0]=[];
 	 CW_original_styles[1]=[];
 	 
-	jQuery("#connectionsWindow").modal({
+	jQuery("#bb").modal({
 		maxWidth: Math.round(jQuery(window).width() * 10 /10),
 		maxHeight:  Math.round(jQuery(window).height() * 10 /10),
 		minWidth: Math.round(jQuery(window).width() * 10 /10),
@@ -277,16 +284,16 @@ function connectionsLanuchCallBack(){
 }
 
 function selectListChanged(theElement){
-	var thisSide='';
+
 	var otherSide='';
 	
 	if(theElement.id == 'diagramSelectionList1'){
-		thisSide= '1';
-		otherSide= '2';
+		thisSide= 1;
+		otherSide= 2;
 	}
 	else{
-		thisSide= '2';
-		otherSide= '1';
+		thisSide= 2;
+		otherSide= 1;
 	}
 	
 	if(jQuery('#diagramSelectionList' + thisSide).val() == jQuery('#diagramSelectionList' + otherSide).val()){
@@ -294,11 +301,32 @@ function selectListChanged(theElement){
 		return;
 	}
 	
-	jQuery("#connections_side" + thisSide).load("?q=mdn/getDiagram/" + jQuery('#diagramSelectionList' + thisSide).val(), selectListChangedCallBack);
+	if(jQuery('#diagramSelectionList' + thisSide).val() === 'cnt1'){
+	   //jQuery("#connections_side" + thisSide).html(jQuery("#contentBrowser").html());
+	   //jQuery("#contentBrowser").html('');
+	   
+	   jQuery("#connections_side" + thisSide).hide();
+	   jQuery("#contentBrowser").show();
+       connectionsWindow_displayedDiagrams[thisSide-1]='cnt1';
+	   connectionsWindow_selections[thisSide-1]=[];
+	   CW_original_styles[thisSide-1]=[];
+	}
+	else{
+    	jQuery("#connections_side" + thisSide).load("?q=mdn/getDiagram/" + jQuery('#diagramSelectionList' + thisSide).val(), selectListChangedCallBack);	
+	}
+	
 }
 
-function selectListChangedCallBack(){
 	
+function selectListChangedCallBack(){
+    SVGDisplayPreparation("connections_svgContainer" + thisSide, sendClickToParentDocument2, sendMouseOverToParentDocument2, sendMouseOutToParentDocument2);
+
+    jQuery("#connections_side" + thisSide + " svg").each(function( index ) {
+         connectionsWindow_displayedDiagrams[thisSide-1]=jQuery( this ).attr("id");
+    });
+
+	connectionsWindow_selections[thisSide-1]=[];
+	CW_original_styles[thisSide-1]=[];
 }
 
 function fullScreen(){
@@ -496,7 +524,9 @@ function CreateConnection(){
 		    									 
 	    }
 	}
-    console.log(newConnections + "connection()s) saved, " + oldConnections + " already exist(s)");	
+	
+	jQuery("#connectionWindowStatus").html(newConnections + " connection(s) saved, " + oldConnections + " already exist(s)");
+
 	/*
     for i=0 to side1.length
 	   grip visual element for side1 element 
@@ -513,6 +543,96 @@ function CreateConnection(){
 		  add pair to connection array
 	   end for
 	*/
+}
+
+function DeleteConnection(){
+	if(connectionsWindow_selections[0].length <=0 || connectionsWindow_selections[1].length <=0){
+		alert("you need to select at least one element in each diagram. Selection can be made by clicking diagram elements such as squares and ovals");
+		return;
+	}
+
+	if(connectionsWindow_selections[0].length >1 && connectionsWindow_selections[1].length >1){
+		alert("Multiple selections are found in both diagrams. S One diagram can have only one selection, the other diagram can have multiple selections");
+		return;
+	}
+
+	var deletedConnections=0;
+	var notFoundConnections=0;
+	
+	for(i=0; i< connectionsWindow_selections[0].length; i++){
+		for(j=0; j< connectionsWindow_selections[1].length; j++){
+			
+			var ind=-1;
+			for(var k=0; k< Drupal.settings.connections.length; k++){
+		       if((Drupal.settings.connections[k][0] === connectionsWindow_displayedDiagrams[0] 
+			    && Drupal.settings.connections[k][1] === connectionsWindow_selections[0][i] 
+			    && Drupal.settings.connections[k][2] === connectionsWindow_displayedDiagrams[1] 
+				&& Drupal.settings.connections[k][3] === connectionsWindow_selections[1][j])
+				||
+				  (Drupal.settings.connections[k][2] === connectionsWindow_displayedDiagrams[0] 
+			    && Drupal.settings.connections[k][3] === connectionsWindow_selections[0][i] 
+			    && Drupal.settings.connections[k][0] === connectionsWindow_displayedDiagrams[1] 
+				&& Drupal.settings.connections[k][1] === connectionsWindow_selections[1][j]) ){
+					                                              // connection in Drupal.settings.connections
+					Drupal.settings.connections.splice(k,1);
+					jQuery.get("?q=mdn/deleteConnection/" + connectionsWindow_displayedDiagrams[0] 
+		                                         + "/" + connectionsWindow_selections[0][i]
+												 + "/" + connectionsWindow_displayedDiagrams[1]
+												 + "/" + connectionsWindow_selections[1][j], null, null);
+					deletedConnections++;
+					break;
+				}
+				else{
+					deletedConnections++;
+				}
+	        
+			}       
+			
+			
+		}
+	}
+
+    jQuery("#connectionWindowStatus").html(deletedConnections + " connection(s) deleted");
+	
+	/*
+	   ensure one to many
+	   for all
+	     function find
+		 if found 
+		    delet from function
+		    request server to delete
+	     else
+			just display count of are not connected in the first place
+
+         clear selections
+		 
+       content connections	  
+	   add clear selections
+	   add clear selections to drop-down list change
+	   color browser
+	  
+	*/
+}
+
+function ClearLeftSide(){
+	clearSide(0);
+}
+
+function ClearRightSide(){
+	clearSide(1);
+}
+
+function clearSide(side){
+	for(var i=0;i<connectionsWindow_selections[side].length;i++){
+ 	    jQuery(con_window_class + " #" + connectionsWindow_displayedDiagrams[side] + '_' + connectionsWindow_selections[side][i])
+		                          .css("fill",CW_original_styles[side][i][0])
+		                          .css("stroke",CW_original_styles[side][i][1])
+		                          .css("stroke-width",CW_original_styles[side][i][2])
+							   	  .css("opacity",CW_original_styles[side][i][3]);
+	
+	}
+	connectionsWindow_selections[side].length=0;
+	CW_original_styles[side].length=0;	 
 }
 
 function relatedVisualElementsInDisplayedDiagrams(diagramsArr, viewId, elementId){

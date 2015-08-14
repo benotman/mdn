@@ -155,13 +155,22 @@ function get_mdn() {
 					      . '<button id="diagramBrowserOK" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserOK();">OK</button>'
 					      . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
 					    .'</div>';
-  $connectionWindow = '<div id="connectionsWindow"  style="display:none">'
-                        .'<form>'
-                           .'Node: '
-                           .'<input type="text" name="mdn2nodeName" class="connectionNode" id="mdnnodeName">' 
-                           .'<input type="text" name="mdn3nodeName" class="connectionNode" id="mdnnodeName">' 						   
-						.'</form>'
-					    .'</div>';	
+  
+  $contentBrowser  = '<div id="contentBrowser" style="display:none">'
+                        .'<form id="contentBrowserForm">'
+                          .'Node: '
+                          .'<input type="text" name="mdn2nodeName" class="connectionTextbox" id="mdnnode1Name">' 
+                          .'<input type="text" name="mdn3nodeName" class="connectionTextbox" id="mdnnode2Name">' 						   
+					   .'</form>'
+                    .'</div>'; 					   
+					
+  $connectionWindow = '<div id="bb" style="display:none">'
+                      . '<div id="connectionsWindow">'
+                      .'</div>'
+					  . $contentBrowser
+					  .'</div>';	
+					  
+  
 
    $diagramCounter=0;  
    $layoutCounter =0; // counting diagrams with displayonLoad = true (will be under 2)   
@@ -530,7 +539,22 @@ function mdn_menu() {
 	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
   );
+
+  $items['mdn/deleteConnection'] = array(
+    'page callback' => 'mdn_delete_connection',
+	'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
+
   return $items;
+}
+
+function mdn_delete_connection($view1, $element1, $view2, $element2){
+	$and1 = db_and()->condition('view1', $view1)->condition('element1', $element1)->condition('view2', $view2)->condition('element2', $element2);
+	$and2 = db_and()->condition('view2', $view1)->condition('element2', $element1)->condition('view1', $view2)->condition('element1', $element2);
+	$or = db_or()->condition($and1)->condition($and2);
+	
+	db_delete('Connections')->condition($or)->execute();
 }
 
 function mdn_create_connection($view1, $element1, $view2, $element2){
@@ -545,8 +569,13 @@ function mdn_create_connection($view1, $element1, $view2, $element2){
 }
 
 function get_diagram($diagram_nid){
-	$nodes = entity_load('node', array($diagram_nid));
-	return get_and_prepare_diagram(array_shift($nodes));
+	if($diagram_nid != 'cnt1'){
+	   $nodes = entity_load('node', array($diagram_nid));
+	   return get_and_prepare_diagram(array_shift($nodes));
+	}
+//	else {
+
+	//}
 }
 
 function get_diagram_delivery($cnt){
@@ -599,7 +628,7 @@ function mdn_connections_window(){
 	$result = $query->execute();
 
 	if(!isset($result['node'])) { 
-		$resultHtml = '<p>No Diagrams Available</p>';
+		$resultHtml = 'No Diagrams Available';
 		return $resultHtml;
 	}
 	
@@ -612,14 +641,14 @@ function mdn_connections_window(){
 	   $diagramContents =  get_and_prepare_diagram($node); 
 
 	   if($counter == 1){
-	      $resultHtml = $resultHtml . '<div id ="connections_side1" class="connections_svgContainer">' . $diagramContents . '</div>';
+	      $resultHtml = $resultHtml . '<div id ="connections_side1" class="connections_svgContainer connections_svgContainer1">' . $diagramContents . '</div>';
 		  //$diagramDropDownList = $diagramDropDownList
 	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
 			$nid1 = $node->nid;
 			$title1 = $node->title;
 	   }
 	   else if($counter == 2){
-	      $resultHtml = $resultHtml . '<div id ="connections_side2" class="connections_svgContainer">' . $diagramContents . '</div>';
+	      $resultHtml = $resultHtml . '<div id ="connections_side2" class="connections_svgContainer connections_svgContainer2">' . $diagramContents . '</div>';
 		  //$diagramDropDownList = $diagramDropDownList
 	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
 			$nid2 = $node->nid;
@@ -645,7 +674,9 @@ function mdn_connections_window(){
 	// . '<div id="diagramSelectionList1Container">' . '</div>';
 		
 		$resultHtml = $resultHtml 
-		                 . '<button type="submit" value="Submit" class="mdnButton" onClick="CreateConnection();">Create Connection</button>'						  
+		                 . '<button type="submit" value="Submit" class="mdnButton" onClick="CreateConnection();">Create Connection</button>'
+                         . '<button type="submit" value="Submit" class="mdnButton" onClick="ClearLeftSide();">Clear Selections</button>'
+                         . '<button type="submit" value="Submit" class="mdnButton" onClick="ClearRightSide();">Clear Selections</button>'						 
 					     . '<button type="submit" value="Submit" class="mdnButton" onClick="DeleteConnection();">Delete Connection</button>';
 
 		 //. '<div id="connectionsWindowButtons">' . '</div>';		 
@@ -660,7 +691,8 @@ function mdn_connections_window(){
 
 //. '<div id="diagramSelectionList2Container">'  . '</div>';
 							  
-    $resultHtml = $resultHtml . '</div>'; //connectionsWindowButtom							  
+    $resultHtml = $resultHtml . '</div>'; //connectionsWindowButtom		
+  $resultHtml = $resultHtml . '<div id="connectionWindowStatus">Select diagram elements or Drupal nodes in each side and click connect</div>'; 	
   $resultHtml = $resultHtml . '</div>';	//connectionsWindowContainer 						  
 	
 	return $resultHtml;
