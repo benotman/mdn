@@ -13,6 +13,18 @@
  * @param arg
  *   Array that holds the current path as returned from arg() function
  */
+ 
+define("default_fill_hover_color", "rgb(235,131,22)");
+define("default_stroke_hover_color", "rgb(184,16,16)");
+
+define("default_fill_select_color", "rgb(49,96,62)");
+define("default_stroke_select_color", "rgb(116,88,36)");
+
+define("default_fill_highlight_color", "rgb(113,207,51)");
+define("default_stroke_highlight_color", "rgb(113,207,51)");
+
+
+ 
 function mdn_help($path, $arg) {
   switch ($path) {
     case "admin/help#mdn":
@@ -59,7 +71,58 @@ function mdn_block_view($delta = '') {
  return $block;
 }
 
-function get_and_prepare_diagram($node){
+function save_diagram_colors($nid, $svg_id, $fill_hover_color, $fill_select_color, $fill_highlight_color, $stroke_hover_color, $stroke_select_color, $stroke_highlight_color){
+	 /*
+	    if svg_id is empty you get it by loading content 
+	 */
+
+	 $num_updated = db_update('DiagramData') // Table name no longer needs {}
+            ->fields(array(
+            'hover_fill_color' => $fill_hover_color,
+            'hover_stroke_color' => $stroke_hover_color,
+			'select_fill_color' => $fill_select_color,
+			'select_stroke_color' => $stroke_select_color,
+			'highlight_fill_color' => $fill_highlight_color,
+			'highlight_stroke_color' => $stroke_highlight_color
+           ))
+           ->condition('nid', $nid, '=')
+           ->execute();
+		   
+	if($num_updated<=0){
+			 db_insert('DiagramData') // Table name no longer needs {}
+            ->fields(array(
+			'nid' => $nid,
+			'svg_id' => $svg_id,
+            'hover_fill_color' => $fill_hover_color,
+            'hover_stroke_color' => $stroke_hover_color,
+			'select_fill_color' => $fill_select_color,
+			'select_stroke_color' => $stroke_select_color,
+			'highlight_fill_color' => $fill_highlight_color,
+			'highlight_stroke_color' => $stroke_highlight_color
+           ))
+           ->execute();
+	}	   
+
+}
+
+function get_diagram_colors($nid, &$fill_hover_color, &$fill_select_color, &$fill_highlight_color, &$stroke_hover_color, &$stroke_select_color, &$stroke_highlight_color){
+	
+	$result = db_query("select * from {DiagramData} where nid= :nid",array(':nid' => $nid));
+   
+	$result_html='';
+    foreach ($result as $record) {
+		$fill_hover_color=$record->hover_fill_color;
+        $fill_select_color=$record->select_fill_color;
+        $fill_highlight_color=$record->highlight_fill_color;
+        $stroke_hover_color=$record->hover_stroke_color;
+        $stroke_select_color= $record->select_stroke_color;
+        $stroke_highlight_color=$record->highlight_stroke_color;
+	}
+	
+}
+
+
+function get_and_prepare_diagram($node, &$svg_id){
 	 
 	  $fid = $node->field_svg_file[LANGUAGE_NONE][0]['fid'];
 	  $file = file_load($fid);
@@ -86,7 +149,8 @@ function get_and_prepare_diagram($node){
 		  //$svgId = 'svg' . $uniqueId; // commented for testing, uncomment for final version 
 		 // $rootNode->setAttribute("id", $svgId);
           $svgId = $rootNode->getAttribute("id"); // remove in final version
-
+          $svg_id = $svgId;
+ 
 		  $rootNode->setAttribute("prepared", 'yes');
           
 		  $elem_count =1;
@@ -116,8 +180,10 @@ function get_and_prepare_diagram($node){
 		  // Commented for testing, uncomment for final version
           file_put_contents($file->uri, $newContents);
 		  
+		  save_diagram_colors($node->nid, $svgid, default_fill_hover_color, default_fill_select_color, default_fill_highlight_color, default_stroke_hover_color, default_stroke_select_color, default_stroke_highlight_color );
       }
 	  else{ // svg file is prepared before
+          $svg_id = $rootNode->getAttribute("id");
 		  $newContents = $doc->saveXML(); 
 	  }
 
@@ -128,6 +194,7 @@ function get_mdn() {
 
   drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
   drupal_add_js(drupal_get_path('module', 'mdn') . '/jquery.simplemodal.1.4.4.min.js');
+  
   drupal_add_css(drupal_get_path('module', 'mdn') . '/mdn.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
  
   $default_layout = 2; // default number of diagrams to display
@@ -142,7 +209,8 @@ function get_mdn() {
 
    if (user_access('diagram: Create new content')) {
       $resultHtml = $resultHtml 
-	               . '<button type="submit" value="Submit" class="mdnButton" onClick="connectionsLanuch();">Connections</button>';
+	               . '<button type="submit" value="Submit" class="mdnButton" onClick="connectionsLanuch();">Connections</button>'
+				   . '<button type="submit" value="Submit" class="mdnButton" onClick="colorWinLanuch();">Colors</button>';
    }				   
     
   $resultHtml = $resultHtml 
@@ -155,22 +223,39 @@ function get_mdn() {
 					      . '<button id="diagramBrowserOK" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserOK();">OK</button>'
 					      . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
 					    .'</div>';
-  
-  $contentBrowser  = '<div id="contentBrowser" style="display:none">'
-                        .'<form id="contentBrowserForm">'
-                          .'Node: '
-                          .'<input type="text" name="mdn2nodeName" class="connectionTextbox" id="mdnnode1Name">' 
-                          .'<input type="text" name="mdn3nodeName" class="connectionTextbox" id="mdnnode2Name">' 						   
-					   .'</form>'
+						
+  //                        .'<form id="contentBrowserForm">'
+//					   .'</form>'  
+  $contentBrowser  = '<div id="conWinContent" style="display:none" class="conWinContentClass d2c">'
+                          .'<input type="text" name="mdnnodeName" class="connectionTextbox" id="textBoxNodeEntry" disabled>' 
+					      .'<button id="TextBoxConnection" type="submit" value="Submit" class="mdnButton" onClick="c2dConnection();">Connect</button>'						  
+					   .'<div id="connectedNodes">'
+					   .'</div>'
                     .'</div>'; 					   
 					
-  $connectionWindow = '<div id="bb" style="display:none">'
-                      . '<div id="connectionsWindow">'
-                      .'</div>'
-					  . $contentBrowser
-					  .'</div>';	
+  $connectionWindow = '<div id="conWinContainer" class="conWinContainerClass" style="display:none">'
+                           .'<div id="conWinTop">'
+                               .'<div id="conWinDiagrams" class="conWinDiagramsClass d2d">'
+						  	   .'</div>'
+                               . $contentBrowser
+						   .'</div>'
+						   .'<div id="conWinButtom">'
+						   .'</div>'
+					  .'</div>';
 					  
-  
+  $colorsWindow = '<div id="colorWinContainer" class="colorWinContainerClass" style="display:none">'
+				  .'</div>';						
+					  	
+/*
+				  .'<div id="test1">'
+				  .'</div>'
+				  .'<div>'
+				  . '<input type="text" id="mdnHoverColorText"/>'
+				  .'</div>'
+*/
+
+						
+	
 
    $diagramCounter=0;  
    $layoutCounter =0; // counting diagrams with displayonLoad = true (will be under 2)   
@@ -205,9 +290,12 @@ function get_mdn() {
 
    	     $diagramCounter++;
 	     if($diagramCounter <= $default_layout && $node->field_display_on_load[LANGUAGE_NONE][0]['value'] == 1){
-		     $diagramContents =  get_and_prepare_diagram($node); 
+			 $svg_internal_id='';
+		     $diagramContents =  get_and_prepare_diagram($node, $svg_internal_id); 
 		     $resultHtml = $resultHtml . '<div class="svgContainer mdnMediumScreen">' . $diagramContents . '</div>';
 		     $layoutCounter++;
+			 get_diagram_colors($node->nid, $fv,$fs,$fh,$sv,$ss,$sh);
+			 $diagram_colors[$svg_internal_id]= array($fv,$fs,$fh,$sv,$ss,$sh, $svg_internal_id);
 	     }
       }
    }
@@ -232,7 +320,7 @@ function get_mdn() {
  . '<p>You can press ESC to close this dialog or click <a href="#" class="simplemodal-close">close</a>.</p>'
  */
    
-   $resultHtml = $resultHtml . $diagramBrowser . $connectionWindow;
+   $resultHtml = $resultHtml . $diagramBrowser . $connectionWindow . $colorsWindow;
    
    $heatmapSQl = "SELECT sub_section, page_section, count(minid) as cnt FROM drupaltemplog group by sub_section,page_section";
    
@@ -244,7 +332,8 @@ function get_mdn() {
 					  'heatmapMax' => max_heatmap($heatmapSQl), 
 					  'userData' => user_firstSession(),
 					  'LayoutNoOfDiagrams' => $layoutCounter,
-					  'NoOfDiagrams' => $diagramCounter);
+					  'NoOfDiagrams' => $diagramCounter,
+					  'diagram_colors' => $diagram_colors);
 					  
 					  // connections -> all connections
 					  //Visaul elements -> all visual elements having connections to other elements
@@ -508,7 +597,7 @@ function mdn_menu() {
   ); 
 */  
   $items['mdn/hover'] = array(
-    'page callback' => 'mdn_hover',
+    'page callback' => 'mdn_addc2dconnection',
 	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
   );
@@ -526,6 +615,14 @@ function mdn_menu() {
     'access arguments' => array('access content'),
 	'delivery callback' => 'mdn_connections_window_delivery', 
   );
+
+  $items['mdn/colorsWindow'] = array(
+    'page callback' => 'mdn_colors_window',
+	'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+	'delivery callback' => 'mdn_colors_window_delivery', 
+  );
+  
   
   $items['mdn/getDiagram'] = array(
     'page callback' => 'get_diagram',
@@ -539,15 +636,60 @@ function mdn_menu() {
 	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
   );
-
+  
   $items['mdn/deleteConnection'] = array(
     'page callback' => 'mdn_delete_connection',
 	'type' => MENU_CALLBACK,
     'access arguments' => array('access content'),
   );
 
+  $items['mdn/nodeTitles'] = array(
+    'page callback' => 'mdn_node_titles',
+	'type' => MENU_CALLBACK,   
+    'access arguments' => array('access content'),
+	'delivery callback' => 'mdn_node_titles_delivery', 
+  );
+  /*
+  $items['mdn/addc2dconnection/'] = array(
+    'page callback' => 'mdn_addc2dconnection',
+	'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
+  */
+  
+  $items['mdn/saveDiagramColors'] = array(
+    'page callback' => 'mdn_save_diagram_colors',
+	'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
+
   return $items;
 }
+
+function mdn_node_titles($viewId, $elementId){
+
+  $SQL = "SELECT nid,title FROM drupalnode inner join drupalConnections on drupalnode.nid = drupalConnections.element2 where drupalConnections.view1=:view and drupalConnections.element1=:element and drupalConnections.view2='cnt1'"
+	   ." union "
+	   ." SELECT nid,title FROM drupalnode inner join drupalConnections on drupalnode.nid = drupalConnections.element1 where drupalConnections.view2=:view and drupalConnections.element2=:element and drupalConnections.view1='cnt1'";
+
+   $result = db_query($SQL,array(':view' => $viewId, ':element' => $elementId));
+   
+	$result_html='';
+    foreach ($result as $record) {
+       $result_html= $result_html 
+	               . '<div id="nid_'. $record->nid .'" >' 
+                      . '<button type="submit" value="Submit" class="mdnButton" onClick="deleteVE2CEConnection(' . $record->nid . ');">delete Connection</button>'				
+				      .'<span>' . $record->title . '</span>'
+				   .'</div>';		
+	}
+
+	return $result_html;
+}
+
+function mdn_node_titles_delivery($cnt){
+	 print $cnt;
+}
+
 
 function mdn_delete_connection($view1, $element1, $view2, $element2){
 	$and1 = db_and()->condition('view1', $view1)->condition('element1', $element1)->condition('view2', $view2)->condition('element2', $element2);
@@ -568,10 +710,16 @@ function mdn_create_connection($view1, $element1, $view2, $element2){
    ))->execute();
 }
 
+function  mdn_save_diagram_colors($nid, $fill_hover_color, $fill_select_color, $fill_highlight_color, $stroke_hover_color, $stroke_select_color, $stroke_highlight_color){
+	save_diagram_colors($nid, '', '#' . $fill_hover_color, '#' . $fill_select_color, '#' . $fill_highlight_color, '#' . $stroke_hover_color, '#' . $stroke_select_color, '#' . $stroke_highlight_color);
+}
+
+
 function get_diagram($diagram_nid){
 	if($diagram_nid != 'cnt1'){
 	   $nodes = entity_load('node', array($diagram_nid));
-	   return get_and_prepare_diagram(array_shift($nodes));
+	   $svg_internal_id='';
+	   return get_and_prepare_diagram(array_shift($nodes), $svg_internal_id);
 	}
 //	else {
 
@@ -602,7 +750,8 @@ function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
 	   $resultHtml='';
 	   $nodes = entity_load('node', array_keys($result['node']));
 	   foreach ($nodes as $node) {
-		   $diagramContents =  get_and_prepare_diagram($node); 
+		   $svg_internal_id='';
+		   $diagramContents =  get_and_prepare_diagram($node, $svg_internal_id); 
 		   $resultHtml = $resultHtml . '<div class="svgContainer">' . $diagramContents . '</div>';
 	   }
 	   return $resultHtml;
@@ -610,12 +759,96 @@ function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
 
 }
 
+function mdn_colors_window(){
+	$resultHtml = '';
+	$diagramDropDownList ='';			  
 
+	$query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'node')
+	  ->entityCondition('bundle', 'diagram');
+	 // ->fieldOrderBy('field_display_on_load', 'value', 'DESC'); 
+	
+	$result = $query->execute();
+
+	if(!isset($result['node'])) { 
+		$resultHtml = 'No Diagrams Available';
+		return $resultHtml;
+	}
+	
+	$diagrams_nids = array_keys($result['node']);
+    $diagrams = entity_load('node', $diagrams_nids);
+	
+	$counter=0;
+	foreach ($diagrams as $node) {
+	   $counter++;
+
+	   if($counter == 1){
+		  $svg_internal_id=''; 
+		  $diagramContents =  get_and_prepare_diagram($node, $svg_internal_id); 
+	      $resultHtml = $resultHtml . '<div id ="colorWinDiagram" class="colorWinDiagramClass">' . $diagramContents . '</div>';
+		  //$diagramDropDownList = $diagramDropDownList
+	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
+          $diagramDropDownList = $diagramDropDownList
+	                         . '<option value="' . $node->nid . '" selected="selected">' . $node->title . '</option>';	
+	   }
+	   else{
+	      $diagramDropDownList = $diagramDropDownList
+	                         . '<option value="' . $node->nid . '">' . $node->title . '</option>';		   	   
+	   }
+	}
+	
+    $resultHtml = $resultHtml  
+	             .'<div id="colorWinButtom">' 
+				    .'<div class="colorWinGroup">' 
+					   . '<select id="colorWinSelectionList" onChange="colorWinselectListChanged(this);">'
+						   . $diagramDropDownList
+					   . '<select>'
+				 	   . '<button type="submit" value="Submit" class="mdnButton" onClick="colorWinClose();">Close</button>'
+                       . '<button type="submit" value="Submit" class="mdnButton" onClick="colorWinSave();">Save Colors</button>'
+					.'</div>'
+					.'<div class="colorWinGroup">' 
+					    . '<button id="testHover" type="submit" value="Submit" class="mdnButton" onClick="showColor(this);">Test on Diagram</button>'
+						. '<label for="mdnHoverFillText">hover fill</label>'
+					    . '<input type="color" id="mdnHoverFillText" value="#ff0000"/>'
+						. '<label for="mdnHoverStrokeText">hover Stroke</label>'
+					    . '<input type="color" id="mdnHoverStrokeText" value="#ff0000"/>'
+                    .'</div>'
+					.'<div class="colorWinGroup">' 
+					    . '<button id="testSelect" type="submit" value="Submit" class="mdnButton" onClick="showColor(this);">Test on Diagram</button>'
+						. '<label for="mdnSelectFillText">Select fill</label>'
+					    . '<input type="color" id="mdnSelectFillText" value="#ff0000"/>'
+						. '<label for="mdnSelectStrokeText">Select Stroke</label>'
+					    . '<input type="color" id="mdnSelectStrokeText" value="#ff0000"/>'
+                    .'</div>'
+					.'<div class="colorWinGroup">' 
+					    . '<button id="testHighlight" type="submit" value="Submit" class="mdnButton" onClick="showColor(this);">Test on Diagram</button>'
+						. '<label for="mdnHighlightFillText">Highlight fill</label>'
+					    . '<input type="color" id="mdnHighlightFillText" value="#ff0000"/>'
+						. '<label for="mdnHighlightStrokeText">Highlight Stroke</label>'
+					    . '<input type="color" id="mdnHighlightStrokeText" value="#ff0000"/>'
+                    .'</div>'
+
+				 .'</div>';
+									
+    return $resultHtml;
+}
 
 function mdn_connections_window(){
-
-	$resultHtml = '<div id="connectionsWindowContainer">'
-	              .'<div class="connectionsSVGContainer" id="connectionsWindowSidesContainer">';
+	
+    /*
+	div conWinContainer  display:none
+	  div conWinTop     
+		 div conWinDiagrams
+		    div conWinDiagram1
+			div conWinDiagram2
+			div buttomBuffer display:none
+		 div conWinContent
+	  div conWinButtom  //place holder	
+	*/
+	
+	
+	
+	$resultHtml = '';
 				  
 	$diagramDropDownList ='';			  
 	
@@ -638,17 +871,18 @@ function mdn_connections_window(){
 	$counter=0;
 	foreach ($diagrams as $node) {
 	   $counter++;
-	   $diagramContents =  get_and_prepare_diagram($node); 
+	   $svg_internal_id='';
+	   $diagramContents =  get_and_prepare_diagram($node, $svg_internal_id); 
 
 	   if($counter == 1){
-	      $resultHtml = $resultHtml . '<div id ="connections_side1" class="connections_svgContainer connections_svgContainer1">' . $diagramContents . '</div>';
+	      $resultHtml = $resultHtml . '<div id ="conWinDiagram1" class="conWinDiagram1Class d2d">' . $diagramContents . '</div>';
 		  //$diagramDropDownList = $diagramDropDownList
 	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
 			$nid1 = $node->nid;
 			$title1 = $node->title;
 	   }
 	   else if($counter == 2){
-	      $resultHtml = $resultHtml . '<div id ="connections_side2" class="connections_svgContainer connections_svgContainer2">' . $diagramContents . '</div>';
+	      $resultHtml = $resultHtml . '<div id ="conWinDiagram2" class="conWinDiagram2Class d2d">' . $diagramContents . '</div>';
 		  //$diagramDropDownList = $diagramDropDownList
 	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
 			$nid2 = $node->nid;
@@ -660,16 +894,13 @@ function mdn_connections_window(){
 	   }
 	}
 	
-	$resultHtml = $resultHtml . '</div>'; //connectionsWindowSidesContainer
-	
-	    $resultHtml = $resultHtml . '<div id="connectionsWindowButtom">';
-	
-        $resultHtml = $resultHtml  . '<select id="diagramSelectionList1" onChange="selectListChanged(this);">'
-									       . '<option value="cnt1">Content: Drupal Nodes</option>'
-										   . '<option value="' . $nid1 . '"  selected="selected">' . $title1 . '</option>'
-										   . '<option value="' . $nid2 . '">' . $title2 . '</option>'
-										   . $diagramDropDownList
-									. '<select>';
+    $resultHtml = $resultHtml  
+	             .'<div id="buttomBuffer" style="display:none">' 
+	                 .'<select id="diagramSelectionList1" onChange="selectListChanged(this);">'
+						   . '<option value="' . $nid1 . '"  selected="selected">' . $title1 . '</option>'
+						   . '<option value="' . $nid2 . '">' . $title2 . '</option>'
+						   . $diagramDropDownList
+					. '<select>';
 									
 	// . '<div id="diagramSelectionList1Container">' . '</div>';
 		
@@ -688,14 +919,14 @@ function mdn_connections_window(){
 										   . '<option value="' . $nid2 . '"  selected="selected">' . $title2 . '</option>'
 									       . $diagramDropDownList
 								  . '<select>';
+							
+        $resultHtml = $resultHtml . '<div id="connectionWindowStatus">Select diagram elements or Drupal nodes in each side and click connect</div>'; 								
 
 //. '<div id="diagramSelectionList2Container">'  . '</div>';
 							  
-    $resultHtml = $resultHtml . '</div>'; //connectionsWindowButtom		
-  $resultHtml = $resultHtml . '<div id="connectionWindowStatus">Select diagram elements or Drupal nodes in each side and click connect</div>'; 	
-  $resultHtml = $resultHtml . '</div>';	//connectionsWindowContainer 						  
-	
-	return $resultHtml;
+    $resultHtml = $resultHtml . '</div>'; //buttomBuffer		
+  
+    return $resultHtml;
 	
 }
 
@@ -709,6 +940,9 @@ function mdn_connections_window_delivery($cnt){
 	 print $cnt;
 }
 
+function mdn_colors_window_delivery($cnt){
+	 print $cnt;
+}
 
 /*
 function ajax_link_response($type = 'ajax', $nid = 0) {
@@ -738,6 +972,34 @@ function ajax_reader_load_noder($nid = 0) {
  // return views_embed_view ('front','page_1', $nid);
 }
 */
+
+function mdn_addc2dconnection($diagramId, $visualElementId, $mdnNodeTitle){
+   $result = db_query("Select nid from {node} where title = :nodeTitle", array(':nodeTitle' => $mdnNodeTitle));
+   
+   $mdn_nid=-1;
+   foreach ($result as $record) {
+      $mdn_nid = $record->nid;
+	  break;
+   }		  
+
+   if($mdn_nid>0){
+	   	db_insert('Connections') 
+           ->fields(array(
+            'view1' => $diagramId,
+            'element1' => $visualElementId,
+            'view2' => 'cnt1',
+            'element2' => $mdn_nid,
+           ))->execute();
+		   
+       $arr=array('mdn_nid' => $mdn_nid);
+   }
+   else{
+	   $arr=array('mdn_nid' => 'title not found');
+   }
+   
+   $jsonstring = drupal_json_encode($arr);
+   drupal_json_output($jsonstring);
+}
 
 function mdn_hover($viewId, $elementId){
    $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element and view2 != 'cnt1') or (view2 = :view and element2 = :element and view1 != 'cnt1')", 

@@ -1,10 +1,64 @@
-next is relatedVisualElementsInDisplayedDiagrams
+INSERT INTO `drupalDiagramData` (`nid`, `svg_id`, `hover_fill_color`, `hover_stroke_color`, `select_fill_color`, `select_stroke_color`, `highlight_fill_color`, `highlight_stroke_color`) VALUES
+(19, 'svg1', '#EB8316', '#B81010', '#31603E', '#745824', '#71CF33', '#71CF33'),
+(20, 'svg2', '#EB8316', '#B81010', '#31603E', '#745824', '#71CF33', '#71CF33');
+
+Color window
+diagram 
+choose diagram list
+color pick for
+-- hover
+-- select
+-- highlight
+
+hover, test while you hover
+
+
+color_window
+-- test hover
+---- change tempFillColor
+---- change tempStrokeColor
+
+load
+   change color inputs with colors from the array (current diagram)
+   
+--------------
+
+
+
+--------------
+diagram color1, color2, color3   save colors, close
+
+where to save
+   drupal temp records
 
 
 CSS for connections window
 
-view content browser --> text box only
-   if no VE is selected do not allow entering node title
+-- view content browser --> one text box only (enabled = false)
+-- VE is selected -->
+     if otherSide == cnt1 
+        clear all selections in this side *
+		add this selection **
+		enable text box 
+        clear node  list *
+		view connected nodes *
+-- VE is unselected -->  
+     if otherSide == cnt1 
+	    disable text box
+		clear node list
+		
+-- connect 
+   search node title and get nid
+   store connection in array and db
+   
+-- Delete Connection
+   search node title and get nid
+   delete connection in array and db   
+   
+
+		
+      
+   
    if multiple VEs are selected --> do not allow entering node title
      in onCHANGE, check lenght of selection array, and alert if length >1
    
@@ -18,12 +72,15 @@ contentBlock   connectionsWindow
                side1   side2
 			   
 diagrams case
-display:none   display 100%
+display:none   display 100%         
                side1 48%   side2%
+               class con_diagramcon_d2d			   
 			 
 content-diagram case
 show  48%         display 48%			 
  	           side1 or side2 100%
+
+
 			   
 ---------------------------------------------------------------
 Connections window

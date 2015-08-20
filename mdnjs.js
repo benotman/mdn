@@ -10,18 +10,25 @@
 	var visualElements = []; // All visual elements in all diagram; includes elements having at least one connection(to visual or content element)
                              // This is a key data structure where we keep track of element orignial style, status (regular, selected, highlighted)
 							 // , and number of highlighting requests for the element (made by other elements)
+	var dColors =[];						 
 	var svgElementHasConnections=false;
 	var flagKeepColor = false;
 	var displayedDiagrams=[]; // displayed diagrams for main window
 	var connectionsWindow_displayedDiagrams =[]; // // displayed diagrams for connections window
 	var connectionsWindow_selections=[];
-	var con_window_class =".connectionsSVGContainer"; 
+	var con_window_class =".conWinContainerClass"; 
+	var color_window_class =".colorWinContainerClass";
+	var tempFillColor;
+	var tempStrokeColor;
+	
 	var CW_original_styles = [];
 	
 	var thisSide=0;
+	var otherSide=0;
 	
 	var layout;
-	
+
+/*	
     var rect = {
    'hoverfill': "rgba(235,131,22,1)",
    'hoverstroke': "rgba(184,16,16,1)",
@@ -35,6 +42,22 @@
    'selectstroke': "rgba(116,88,36,1)",
    'selectstroke_width': "1.0px",
    };
+   */
+
+    var rect = {
+   'hoverfill': "rgb(235,131,22)",
+   'hoverstroke': "rgb(184,16,16)",
+   'hoverstroke_width': "1.0px",
+
+   'highlightfill': "rgb(113,207,51)",
+   'highlightstroke': "rgb(113,207,51)",
+   'highlightstroke_width': "1.0px",
+
+   'selectfill': "rgb(49,96,62)",
+   'selectstroke': "rgb(116,88,36)",
+   'selectstroke_width': "1.0px",
+   };
+
 
 function clearSelections(){
 	var i;
@@ -253,21 +276,24 @@ function displayDiagramBrowser(){
 }
 
 function connectionsLanuch(){
-	jQuery("#connectionsWindow").load("?q=mdn/connectionsWindow/", connectionsLanuchCallBack);
+	jQuery("#conWinDiagrams").load("?q=mdn/connectionsWindow/", connectionsLanuchCallBack);
 }
 
 function connectionsLanuchCallBack(){
 	//console.log("test" + jQuery("#connectionsWindow").html());
 	
-	if(jQuery("#connectionsWindow").html() == 'No Diagrams Available'){
+	if(jQuery("#conWinDiagrams").html() == 'No Diagrams Available'){
 	    alert('No diagrams are found in your site. \nYou need at least one diagram to start connecting diagram elements to Drupal nodes. In case of diagram to diagram connections, you need at leaast two diagrams');
         return;	   
 	}
 	
-    SVGDisplayPreparation("connectionsSVGContainer", sendClickToParentDocument2, sendMouseOverToParentDocument2, sendMouseOutToParentDocument2);
+	jQuery("#conWinButtom").html(jQuery("#buttomBuffer").html());
+	jQuery("#buttomBuffer").html('');  // has to reload when closing connectinons_window
+	
+    SVGDisplayPreparation("conWinDiagramsClass", sendClickToParentDocument2, sendMouseOverToParentDocument2, sendMouseOutToParentDocument2);
 
 	connectionsWindow_displayedDiagrams.length=0;
-	 jQuery(".connectionsSVGContainer svg[prepared='yes']").each(function( index ) {
+	 jQuery(".conWinDiagramsClass svg[prepared='yes']").each(function( index ) {
          connectionsWindow_displayedDiagrams[connectionsWindow_displayedDiagrams.length]=jQuery( this ).attr("id");
      });
 	 connectionsWindow_selections[0]=[];
@@ -275,7 +301,7 @@ function connectionsLanuchCallBack(){
 	 CW_original_styles[0]=[];
 	 CW_original_styles[1]=[];
 	 
-	jQuery("#bb").modal({
+	jQuery("#conWinContainer").modal({
 		maxWidth: Math.round(jQuery(window).width() * 10 /10),
 		maxHeight:  Math.round(jQuery(window).height() * 10 /10),
 		minWidth: Math.round(jQuery(window).width() * 10 /10),
@@ -283,10 +309,103 @@ function connectionsLanuchCallBack(){
 	});
 }
 
+
+function colorWinLanuch(){
+	jQuery("#colorWinContainer").load("?q=mdn/colorsWindow/", colorWinLanuchCallBack);
+}
+
+function colorWinLanuchCallBack(){
+	
+	if(jQuery("#colorWinContainer").html() == 'No Diagrams Available'){
+	    alert('No diagrams are found in your site. \nYou need at least one diagram to change colors of hover, selection, and highlight');
+        return;	   
+	}
+	
+	SVGDisplayPreparation("colorWinContainerClass", sendClickToParentDocument3, sendMouseOverToParentDocument3, sendMouseOutToParentDocument3);
+    var colorWindowCurrentDiagram= jQuery("#colorWinContainer svg[prepared='yes']").attr("id");
+	tempFillColor = dColors[colorWindowCurrentDiagram][0];
+	tempStrokeColor = dColors[colorWindowCurrentDiagram][3];	
+	
+	jQuery("#mdnHoverFillText").val(dColors[colorWindowCurrentDiagram][0]);
+	jQuery("#mdnHoverStrokeText").val(dColors[colorWindowCurrentDiagram][3]); 
+	jQuery("#mdnSelectFillText").val(dColors[colorWindowCurrentDiagram][1]);
+	jQuery("#mdnSelectStrokeText").val(dColors[colorWindowCurrentDiagram][4]); 
+	jQuery("#mdnHighlightFillText").val(dColors[colorWindowCurrentDiagram][2]);
+	jQuery("#mdnHighlightStrokeText").val(dColors[colorWindowCurrentDiagram][5]); 
+	
+	jQuery("#colorWinContainer").modal({
+		maxWidth: Math.round(jQuery(window).width() * 5 /10),
+		maxHeight:  Math.round(jQuery(window).height() * 10 /10),
+		minWidth: Math.round(jQuery(window).width() * 5 /10),
+		minHeight:  Math.round(jQuery(window).height() * 10 /10)
+	});
+}
+
+function showColor(theElement){
+	if(theElement.id == 'testHover'){
+		tempFillColor=jQuery("#mdnHoverFillText").val();
+		tempStrokeColor=jQuery("#mdnHoverStrokeText").val(); 
+	}
+	else if(theElement.id == 'testSelect'){
+		tempFillColor=jQuery("#mdnSelectFillText").val();
+		tempStrokeColor=jQuery("#mdnSelectStrokeText").val(); 
+	}
+	else if(theElement.id == 'testHighlight'){
+		tempFillColor=jQuery("#mdnHighlightFillText").val();
+		tempStrokeColor=jQuery("#mdnHighlightStrokeText").val(); 
+	}
+}
+
+function colorWinSave(){
+	
+	var args= jQuery("#colorWinSelectionList").val() + "/" + jQuery("#mdnHoverFillText").val().substring(1) + "/" + jQuery("#mdnSelectFillText").val().substring(1) + "/" + jQuery("#mdnHighlightFillText").val().substring(1) + "/" + jQuery("#mdnHoverStrokeText").val().substring(1) + "/" + jQuery("#mdnSelectStrokeText").val().substring(1) + "/" + jQuery("#mdnHighlightStrokeText").val().substring(1);
+	jQuery.get("?q=mdn/saveDiagramColors/" + args, null, null);
+
+	dColors[colorWindowCurrentDiagram][0] = jQuery("#mdnHoverFillText").val();
+	dColors[colorWindowCurrentDiagram][3] = jQuery("#mdnHoverStrokeText").val(); 
+	dColors[colorWindowCurrentDiagram][1] = jQuery("#mdnSelectFillText").val();
+	dColors[colorWindowCurrentDiagram][4] = jQuery("#mdnSelectStrokeText").val(); 
+	dColors[colorWindowCurrentDiagram][2] = jQuery("#mdnHighlightFillText").val();
+	dColors[colorWindowCurrentDiagram][5] = jQuery("#mdnHighlightStrokeText").val(); 
+	
+    alert("Color scheme is saved");										  
+}
+
+function colorWinClose(){
+	jQuery.modal.close();
+}
+
+function colorWinselectListChanged(theElement){
+	/*
+	  load diagram
+	   load diagram colors from array to temp, and to inputs
+	   
+	   
+	   
+	   should have button default_colors, copy colors, and paste colors
+	*/
+	jQuery("#colorWinDiagram").load("?q=mdn/getDiagram/" + jQuery('#colorWinSelectionList').val(), colorWinselectListChangedCallBack);	
+
+    var colorWindowCurrentDiagram= jQuery("#colorWinContainer svg[prepared='yes']").attr("id");
+	tempFillColor = dColors[colorWindowCurrentDiagram][0];
+	tempStrokeColor = dColors[colorWindowCurrentDiagram][3];	
+	
+	jQuery("#mdnHoverFillText").val(dColors[colorWindowCurrentDiagram][0]);
+	jQuery("#mdnHoverStrokeText").val(dColors[colorWindowCurrentDiagram][3]); 
+	jQuery("#mdnSelectFillText").val(dColors[colorWindowCurrentDiagram][1]);
+	jQuery("#mdnSelectStrokeText").val(dColors[colorWindowCurrentDiagram][4]); 
+	jQuery("#mdnHighlightFillText").val(dColors[colorWindowCurrentDiagram][2]);
+	jQuery("#mdnHighlightStrokeText").val(dColors[colorWindowCurrentDiagram][5]); 
+	
+}
+
+function colorWinselectListChangedCallBack(){
+	SVGDisplayPreparation("colorWinContainerClass", sendClickToParentDocument3, sendMouseOverToParentDocument3, sendMouseOutToParentDocument3);
+	
+}
+
 function selectListChanged(theElement){
 
-	var otherSide='';
-	
 	if(theElement.id == 'diagramSelectionList1'){
 		thisSide= 1;
 		otherSide= 2;
@@ -301,33 +420,51 @@ function selectListChanged(theElement){
 		return;
 	}
 	
+	//console.log("val=" + jQuery('#diagramSelectionList' + thisSide).val());
+	
 	if(jQuery('#diagramSelectionList' + thisSide).val() === 'cnt1'){
 	   //jQuery("#connections_side" + thisSide).html(jQuery("#contentBrowser").html());
 	   //jQuery("#contentBrowser").html('');
 	   
-	   jQuery("#connections_side" + thisSide).hide();
-	   jQuery("#contentBrowser").show();
+	   jQuery("#conWinDiagram" + thisSide).hide();
+	   jQuery("#conWinDiagram" + thisSide).removeClass("d2d").addClass("d2c");
+	   jQuery("#conWinDiagram" + otherSide).removeClass("d2d").addClass("d2c");	   
+	   jQuery("#conWinDiagrams").removeClass("d2d").addClass("d2c");
+	   jQuery("#conWinContent").show();
+	   
+	   
        connectionsWindow_displayedDiagrams[thisSide-1]='cnt1';
 	   connectionsWindow_selections[thisSide-1]=[];
 	   CW_original_styles[thisSide-1]=[];
 	}
 	else{
-    	jQuery("#connections_side" + thisSide).load("?q=mdn/getDiagram/" + jQuery('#diagramSelectionList' + thisSide).val(), selectListChangedCallBack);	
+    	jQuery("#conWinDiagram" + thisSide).load("?q=mdn/getDiagram/" + jQuery('#diagramSelectionList' + thisSide).val(), selectListChangedCallBack);	
+
 	}
 	
 }
 
 	
 function selectListChangedCallBack(){
-    SVGDisplayPreparation("connections_svgContainer" + thisSide, sendClickToParentDocument2, sendMouseOverToParentDocument2, sendMouseOutToParentDocument2);
-
-    jQuery("#connections_side" + thisSide + " svg").each(function( index ) {
+	if(connectionsWindow_displayedDiagrams[otherSide-1] != 'cnt1'){
+	   jQuery("#conWinContent").hide();
+	   jQuery("#conWinDiagram" + thisSide).removeClass("d2c").addClass("d2d");
+	   jQuery("#conWinDiagram" + otherSide).removeClass("d2c").addClass("d2d");	   
+	   jQuery("#conWinDiagrams").removeClass("d2c").addClass("d2d");
+	   jQuery("#conWinDiagram" + thisSide).show();
+	}
+		
+	SVGDisplayPreparation("conWinDiagram" + thisSide + "Class", sendClickToParentDocument2, sendMouseOverToParentDocument2, sendMouseOutToParentDocument2);
+    
+	jQuery("#conWinDiagram" + thisSide + " svg").each(function( index ) {
          connectionsWindow_displayedDiagrams[thisSide-1]=jQuery( this ).attr("id");
     });
 
 	connectionsWindow_selections[thisSide-1]=[];
 	CW_original_styles[thisSide-1]=[];
 }
+
+
 
 function fullScreen(){
 	jQuery(".svgContainer").each(function(index){
@@ -458,6 +595,9 @@ function ConnectionsWindow_svgElementClicked(theElement){
 	
 	var ind = connectionsWindow_selections[side].indexOf(IDs[1]);
     if(ind < 0){ // element is not selected
+	    if(connectionsWindow_displayedDiagrams[1-side] == 'cnt1'){
+			prepareVE2CEConnections(IDs[0],IDs[1],side);
+		}
 	    var location = connectionsWindow_selections[side].length;
 		connectionsWindow_selections[side][location]=IDs[1];
 		CW_original_styles[side][location]= [CurrentHoverFill,
@@ -478,6 +618,16 @@ function ConnectionsWindow_svgElementClicked(theElement){
 
 	flagKeepColor = true;	
 	
+}
+
+function prepareVE2CEConnections(viewId, elementId, side){
+	clearSide(side);
+	jQuery("#connectedNodes").html('');
+	jQuery("#connectedNodes").load("?q=mdn/nodeTitles/" + viewId + "/" + elementId, prepareVE2CEConnectionsCallback);
+}
+
+function prepareVE2CEConnectionsCallback(){
+	jQuery("#textBoxNodeEntry").attr('disabled',false);
 }
 
 function CreateConnection(){
@@ -583,7 +733,7 @@ function DeleteConnection(){
 					break;
 				}
 				else{
-					deletedConnections++;
+					notFoundConnections++;
 				}
 	        
 			}       
@@ -612,6 +762,91 @@ function DeleteConnection(){
 	   color browser
 	  
 	*/
+}
+
+function c2dConnection(){
+
+    var textVal = jQuery("#textBoxNodeEntry").val();
+	if(textVal ==''){
+		alert("Please select a node to connect a diagram element to");
+		return;
+	}
+	
+	var otherSide;
+	if(connectionsWindow_displayedDiagrams[0]=='cnt1'){
+		otherSide = 1;
+	}
+	else{
+		otherSide = 0;
+	}
+	
+	if(connectionsWindow_selections[otherSide].length < 1){
+		alert("Please select a diagram element to connect it to a drupal node");
+		return;
+	}
+	if(connectionsWindow_selections[otherSide].length > 1){
+		alert("Please select only one diagram element to connect it to a drupal node");
+		return;
+	}
+	
+	jQuery.get("?q=mdn/hover/" + connectionsWindow_displayedDiagrams[otherSide] + "/" + connectionsWindow_selections[otherSide][0] + "/" + textVal, null, c2dConnectionCallback);
+
+/*
+   check if val is empty
+   check only one selection on other side
+   
+   send otherdiagram, element, title of node to server
+    in callback get nid for node and display node entry
+	
+   clean text	
+*/
+
+}
+
+function c2dConnectionCallback(response){
+   	var nid = jQuery.parseJSON(response);
+	if(nid.mdn_nid == 'title not found'){
+		alert("error, connection was not saved: node title was not found");
+		return;
+	}
+	
+    var nodeEntry = '<div id="nid_' + nid.mdn_nid + '">' 
+                   + '<button type="submit" value="Submit" class="mdnButton" onClick="deleteVE2CEConnection(' + nid.mdn_nid + ');">delete Connection</button>'				
+				      + '<span>' + jQuery("#textBoxNodeEntry").val() + '</span>'
+				   + '</div>';	
+	
+		
+    jQuery("#connectedNodes").prepend(nodeEntry);
+	jQuery("#textBoxNodeEntry").val('');
+	
+}
+
+function deleteVE2CEConnection(nid){
+	
+	var otherSide;
+	if(connectionsWindow_displayedDiagrams[0]=='cnt1'){
+		otherSide = 1;
+	}
+	else{
+		otherSide = 0;
+	}
+	
+	if(connectionsWindow_selections[otherSide].length < 1){
+		alert("Please select a diagram element to in order to delete a connection");
+		return;
+	}
+	if(connectionsWindow_selections[otherSide].length > 1){
+		alert("Please select only one diagram element to delete a connection");
+		return;
+	}
+	
+	jQuery.get("?q=mdn/deleteConnection/" + connectionsWindow_displayedDiagrams[otherSide] 
+	                                      + "/" + connectionsWindow_selections[otherSide][0]
+										 + "/" + 'cnt1'
+										 + "/" + nid, null, null);
+    
+    jQuery("#nid_" + nid).remove();	
+	
 }
 
 function ClearLeftSide(){
@@ -669,6 +904,19 @@ svgElementHasConnections = false
 svgElementHasConnections = true
     
 */   	   
+
+function ColorWindow_svgElementMouseOver(theElement){
+	var IDs = getViewElementIDs(theElement.id);						  
+
+    CurrentHoverFill= jQuery(color_window_class + " #" + theElement.id).css("fill"); 
+    CurrentHoverStroke= jQuery(color_window_class + " #" + theElement.id).css("stroke"); 
+    CurrentHoverStrokeWidth= jQuery(color_window_class + " #" + theElement.id).css("stroke-width"); 
+    CurrentHoverOpacity=jQuery(color_window_class + " #" + theElement.id).css("opacity");  
+
+    jQuery(color_window_class + " #" + theElement.id).css("fill",tempFillColor).css("stroke",tempStrokeColor)
+	                      .css("stroke-width",rect.selectstroke_width).css("opacity","1");
+}
+
 function ConnectionsWindow_svgElementMouseOver(theElement){
 	var IDs = getViewElementIDs(theElement.id);						  
 
@@ -681,7 +929,20 @@ function ConnectionsWindow_svgElementMouseOver(theElement){
 		
     flagKeepColor = false; // after mouseover, if mouseclick is fired and element style is changed
                                // this flag will equal true so mouseout will not restore element style		
-		
+	
+    var otherDiagram;
+	if(connectionsWindow_displayedDiagrams[0]==IDs[0]){
+		otherDiagram=connectionsWindow_displayedDiagrams[1];
+	}
+	else{
+		otherDiagram=connectionsWindow_displayedDiagrams[0];
+	}
+	
+	if(otherDiagram == 'cnt1'){
+		relatedHighlightedElements.length=0;
+		return;
+	}
+	
 	//search for related visual elements in displayed diagrams
 	var relVisDispElems = relatedVisualElementsInDisplayedDiagrams(connectionsWindow_displayedDiagrams, IDs[0], IDs[1]);
 		
@@ -791,16 +1052,18 @@ function changeStyle(ParentSelector, elementId, newStyle, elementIndex){
   if(ParentSelector != '')
 	  ParentSelector = ParentSelector + ' ';
  
+  var IDs = getViewElementIDs(elementId);	
+ 
   if(newStyle === 'select'){
-	 jQuery(ParentSelector + "#" + elementId).css("fill",rect.selectfill).css("stroke",rect.selectstroke)
+	 jQuery(ParentSelector + "#" + elementId).css("fill",dColors[IDs[0]][1]).css("stroke",dColors[IDs[0]][4])
 	                      .css("stroke-width",rect.selectstroke_width).css("opacity","1");
   }
   else if(newStyle === 'highlight'){
-	 jQuery(ParentSelector + "#" + elementId).css("fill",rect.highlightfill).css("stroke",rect.highlightstroke)
+	 jQuery(ParentSelector + "#" + elementId).css("fill",dColors[IDs[0]][2]).css("stroke",dColors[IDs[0]][5])
 	                      .css("stroke-width",rect.highlightstroke_width).css("opacity","1");
   }
   else if(newStyle === 'hover'){
-	 jQuery(ParentSelector + "#" + elementId).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
+	 jQuery(ParentSelector + "#" + elementId).css("fill",dColors[IDs[0]][0]).css("stroke",dColors[IDs[0]][3])
 	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
   }
   else if(newStyle === 'regular'){
@@ -888,6 +1151,14 @@ function ConnectionsWindow_svgElementMouseOut(theElement){
 	CurrentHoverElement="";
 }
 
+function ColorWindow_svgElementMouseOut(theElement){
+
+    jQuery(color_window_class + " #" + theElement.id).css("fill",CurrentHoverFill).css("stroke",CurrentHoverStroke)
+		                                 .css("stroke-width",CurrentHoverStrokeWidth).css("opacity",CurrentHoverOpacity);
+
+}
+
+
 function relatedContent(){
 	/*
 	  Get selections from visualElements
@@ -936,8 +1207,14 @@ function sendClickToParentDocument2(evt)
         if (parent.ConnectionsWindow_svgElementClicked)
 			parent.ConnectionsWindow_svgElementClicked(target); // after finishing svg loader and identifier, I will have svg id embedded in each element id 
 	}
+
+function sendClickToParentDocument3(evt)
+	{
+      return;
+	}
+
 	
-	function sendMouseOverToParentDocument(evt)
+function sendMouseOverToParentDocument(evt)
 	{
 	  var target = evt.currentTarget;
 	  if(target.correspondingUseElement)
@@ -956,6 +1233,18 @@ function sendClickToParentDocument2(evt)
       
       if (window.parent.ConnectionsWindow_svgElementMouseOver)
 		  window.parent.ConnectionsWindow_svgElementMouseOver(target);
+
+	}
+
+
+	function sendMouseOverToParentDocument3(evt)
+	{
+	  var target = evt.currentTarget;
+	  if(target.correspondingUseElement)
+		  target = target.correspondingUseElement;
+      
+      if (window.parent.ColorWindow_svgElementMouseOver)
+		  window.parent.ColorWindow_svgElementMouseOver(target);
 
 	}
 	
@@ -979,6 +1268,16 @@ function sendClickToParentDocument2(evt)
 		  window.parent.ConnectionsWindow_svgElementMouseOut(target);
 	}		
 
+	function sendMouseOutToParentDocument3(evt)
+	{
+	  var target = evt.currentTarget;
+	  if(target.correspondingUseElement)
+		  target = target.correspondingUseElement;
+      
+      if (window.parent.ColorWindow_svgElementMouseOut)
+		  window.parent.ColorWindow_svgElementMouseOut(target);
+	}			
+
 jQuery(document).ready(function($) {
 	 SVGDisplayPreparation("svgContainer", sendClickToParentDocument, sendMouseOverToParentDocument, sendMouseOutToParentDocument);
 	 var elemId='';
@@ -997,6 +1296,7 @@ jQuery(document).ready(function($) {
 	 
 	 userDataArr = Drupal.settings.userData;
 	 layout = Drupal.settings.LayoutNoOfDiagrams;
+	 dColors = Drupal.settings.diagram_colors;
 	 
 	 displayedDiagrams.length=0;
 	 jQuery(".svgContainer svg[prepared='yes']").each(function( index ) {

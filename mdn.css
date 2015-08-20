@@ -118,17 +118,6 @@ svg {
   height:2em;
 }
 
-.connections_svgContainer{
-  width: 35%;
-  display: inline-block;
-  margin-left: 2px;
-  margin-right: 2px;
-}
-#contentBrowser {
-  width: 20%;
-  margin-left: 2px;
-  margin-right: 2px;
-}
 
 /*
 Connections Window
@@ -136,6 +125,60 @@ full size
 first part 
 buttons strip
 */
+
+      /*
+	div conWinContainer  display:none
+	  div conWinTop     
+		 div conWinDiagrams
+		    div conWinDiagram1
+			div conWinDiagram2
+			div buttomBuffer display:none
+		 div conWinContent
+	  div conWinButtom  //place holder	
+	*/
+	
+
+#conWinTop{
+	height: 80%;
+}
+
+#conWinButtom{
+	height: 20%;
+}
+	
+.d2d.conWinDiagramsClass {
+   width: 100%;
+   display: inline-block;
+}
+
+.d2d.conWinDiagram1Class,
+.d2d.conWinDiagram2Class{
+  width: 48%;
+  display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.d2c.conWinDiagramsClass {
+   width: 48%;
+   display: inline-block;
+}
+
+.d2c.conWinDiagram1Class,
+.d2c.conWinDiagram2Class{
+  width: 100%;
+  display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.d2c.conWinContentClass {
+  width: 48%;
+  display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
+  vertical-align: top;
+}
 
 #diagramSelectionList1{
    display: inline-block;
@@ -156,3 +199,32 @@ buttons strip
 .connectionTextbox {
 	display: inline-block;
 }
+
+#connectedNodes{
+	color: white;
+}
+
+/*
+Color Window
+*/
+
+#colorWinContainer{
+	color: white;
+}
+.colorWinGroup {
+	display: inline-block;
+}
+
+.colorWinGroup button {
+	display: block;
+}
+
+.colorWinGroup input {
+	display: inline-block;
+}
+
+#colorWinContainer svg{
+  width: 100%;
+  height: 100%;
+}
+
