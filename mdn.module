@@ -3,15 +3,6 @@
  * @file
  * A block module that displays the multi diagram navigation widget.
  
- /**
- * Implements hook_help().
- *
- * Displays help and module information.
- *
- * @param path
- *   Which path of the site we're using to display help
- * @param arg
- *   Array that holds the current path as returned from arg() function
  */
  
 define("default_fill_hover_color", "rgb(235,131,22)");
@@ -1167,6 +1158,47 @@ function mdn_get_node($viewId, $elementId) {
   //return "<p>" . $viewId . " " . $elementId . "</p>";
 }
 */
+
+function mdn_visited_content(){
+	//Original code snippet from https://www.drupal.org/node/533358
+	//modified to join the nids of the visited nodes with the connections table to get nids of visual elements
+	
+// the number of items to return, alter to suit.
+$limit = 10;
+
+//Only show pages whose paths match this expression. Use SQL 'like' syntax. Change to suit.
+$url_filter = '';
+
+global $user;
+$where = array('uid = %d');
+$args = array($user->uid);
+
+if (!$user->uid) {
+  // For anonymous users you can add a condition on their hostname/IP address:
+  $where[] = "hostname = '%s'";
+  $args[] = ip_address();
+  // Or you can check by PHP session name, which might be more reliable:
+  $where[] = "sid = '%s'";
+  $args[] = session_id();
+  // You can use either or both of the above conditions. If you do not want to
+  // use one of them, make sure to comment both lines of the condition out.
+}
+if (!empty($url_filter)) {
+  $where[] = "url LIKE '%s'";
+  $args[] = $url_filter;
+}
+
+$where = implode(' AND ', $where);
+$sql = "SELECT DISTINCT title, path FROM (SELECT path, title, uid, hostname, url FROM {accesslog} ORDER BY timestamp DESC) AS recent_paths WHERE $where";
+$result = db_query_range($sql, $args, 0, $limit);
+
+// Now walk through the results and display them
+while ($row = db_fetch_object($result)) {
+  $links[] = l($row->title ? $row->title : t('Home'), $row->path);
+}
+
+print theme('item_list', $links);
+}
 
 
 function mdn_magic($page_callback_result) {
