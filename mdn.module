@@ -4,7 +4,10 @@
  * A block module that displays the multi diagram navigation widget.
  
  */
- 
+
+/*
+Default diagram colors
+*/ 
 define("default_fill_hover_color", "rgb(235,131,22)");
 define("default_stroke_hover_color", "rgb(184,16,16)");
 
@@ -15,11 +18,13 @@ define("default_fill_highlight_color", "rgb(113,207,51)");
 define("default_stroke_highlight_color", "rgb(113,207,51)");
 
 
- 
+/**
+ * Implements hook_help().
+ */ 
 function mdn_help($path, $arg) {
   switch ($path) {
     case "admin/help#mdn":
-      return '<p>' . t("Widget to show diagrams") . '</p>';
+      return '<p>' . t("MDN is a Widget to allow site users to browse the site through multiple diagrams. Diagrams should be in svg format. MDN allows site authors to connect related diagram elements (e.g. shapes) in different diagrams and diagram elements to drupal nodes") . '</p>';
       break;
   }
 } 
@@ -34,40 +39,51 @@ function mdn_block_info() {
     // Default setting.
     'cache' => DRUPAL_CACHE_PER_ROLE,
   );
-    $blocks['mdnNodeViewer'] = array(
-    // The name that will appear in the block list.
-    'info' => t('mdnNodeViewer'),
-    // Default setting.
-    'cache' => DRUPAL_CACHE_PER_ROLE,
-  );
   return $blocks;
 }
 
+/**
+ * Implements hook_block_view().
+ */
 function mdn_block_view($delta = '') {
   switch ($delta) {
     case 'mdn':
       $block['subject'] = t('mdn');
       if (user_access('access content')) {
-       $block['content'] = get_mdn(); //"<div id='mdn'><p>Test block</p></div>";
+       $block['content'] = get_mdn(); 
       }
       break;
-	  
-    case 'mdnNodeViewer':
-      $block['subject'] = t('mdn Node Viewer');
-      if (user_access('access content')) {
-       $block['content'] = "<div id='mdnNodeViewer'><p>default node will be displayed</p></div>"; //"<div id='mdn'><p>Test block</p></div>";
-	  }
-	  break;
  }
  return $block;
 }
 
-function save_diagram_colors($nid, $svg_id, $fill_hover_color, $fill_select_color, $fill_highlight_color, $stroke_hover_color, $stroke_select_color, $stroke_highlight_color){
-	 /*
-	    if svg_id is empty you get it by loading content 
-	 */
+/**
+ * Update or insert diagram colors in the database (DiagramData table)
+ *
+ *
+ * @param int $nid 
+ *   Diagram node id
+ * @param string(25) $svg_id 
+ *   the id of the svg file containing the diagram
+ * @param string $fill_hover_color
+ *   Fill color in hexdecimal used when mouse hovers over the diagram element (shape)
+ * @param string $fill_select_color
+ *   Fill color in hexdecimal used when diagram element (shape) is clicked
+ * @param string $fill_highlight_color
+ *   Fill color in hexdecimal used when diagram element (shape) is highlighted (e.g. because a related element in another diagram is selected)
+ * @param string $stroke_hover_color
+ *   Stroke color in hexdecimal used when mouse hovers over the diagram element (shape)
+ * @param string $stroke_select_color
+ *   Stroke color in hexdecimal used when diagram element (shape) is clicked
+ * @param string $stroke_highlight_color
+ *   Stroke color in hexdecimal used when diagram element (shape) is highlighted (e.g. because a related element in another diagram is selected)
+ *
+ * @see get_diagram_colors()
+ */
 
-	 $num_updated = db_update('DiagramData') // Table name no longer needs {}
+function save_diagram_colors($nid, $svg_id, $fill_hover_color, $fill_select_color, $fill_highlight_color, $stroke_hover_color, $stroke_select_color, $stroke_highlight_color){
+
+	 $num_updated = db_update('DiagramData') // try update diagram colors if diagram exists
             ->fields(array(
             'hover_fill_color' => $fill_hover_color,
             'hover_stroke_color' => $stroke_hover_color,
@@ -79,8 +95,8 @@ function save_diagram_colors($nid, $svg_id, $fill_hover_color, $fill_select_colo
            ->condition('nid', $nid, '=')
            ->execute();
 		   
-	if($num_updated<=0){
-			 db_insert('DiagramData') // Table name no longer needs {}
+	if($num_updated<=0){ // if diagram does not exist, insert a row for diagram colors
+			 db_insert('DiagramData') 
             ->fields(array(
 			'nid' => $nid,
 			'svg_id' => $svg_id,
@@ -95,6 +111,27 @@ function save_diagram_colors($nid, $svg_id, $fill_hover_color, $fill_select_colo
 	}	   
 
 }
+
+/**
+ * Get diagram colors from the database (DiagramData table)
+ *
+ * @param int $nid 
+ *   Diagram node id
+ * @param string $fill_hover_color
+ *   Fill color in hexdecimal used when mouse hovers over the diagram element (shape)
+ * @param string $fill_select_color
+ *   Fill color in hexdecimal used when diagram element (shape) is clicked
+ * @param string $fill_highlight_color
+ *   Fill color in hexdecimal used when diagram element (shape) is highlighted (e.g. because a related element in another diagram is selected)
+ * @param string $stroke_hover_color
+ *   Stroke color in hexdecimal used when mouse hovers over the diagram element (shape)
+ * @param string $stroke_select_color
+ *   Stroke color in hexdecimal used when diagram element (shape) is clicked
+ * @param string $stroke_highlight_color
+ *   Stroke color in hexdecimal used when diagram element (shape) is highlighted (e.g. because a related element in another diagram is selected)
+ *
+ * @see get_diagram_colors()
+ */
 
 function get_diagram_colors($nid, &$fill_hover_color, &$fill_select_color, &$fill_highlight_color, &$stroke_hover_color, &$stroke_select_color, &$stroke_highlight_color){
 	
@@ -112,7 +149,19 @@ function get_diagram_colors($nid, &$fill_hover_color, &$fill_select_color, &$fil
 	
 }
 
-
+/**
+ * Return the svg content of a diagram. If the diagram is retrieved for the first time, the function prepares the diagram for being used in MDN 
+ * by adding attributes and assigning unique ids for diagram elements
+ *
+ * @param array $node
+ *   an array of the diagram entity objects. Same array returned from entity_load function.
+ * @param string $svg_id
+ *   Returns the id of the svg parent element for the svg file associated with the diagram
+ *
+ * @return string
+ *   SVG xml in string format
+ */
+ 
 function get_and_prepare_diagram($node, &$svg_id){
 	 
 	  $fid = $node->field_svg_file[LANGUAGE_NONE][0]['fid'];
@@ -122,30 +171,24 @@ function get_and_prepare_diagram($node, &$svg_id){
       $doc->loadXML($contents);
 
 	  $rootNode = $doc->documentElement;
-      $rootNode->setAttribute("hide_elements",$node->field_hide_svg_elements[LANGUAGE_NONE][0]['value']); // try to use drupal_add_js settings instead
+      $rootNode->setAttribute("hide_elements",$node->field_hide_svg_elements[LANGUAGE_NONE][0]['value']); 
 	  
       $prepared='';
 	  $prepared = $rootNode->getAttribute("prepared");
 
 	  if($prepared === ''){ // SVG file is loaded for the first time, MDN prepares svg file by assigning unique ids for the svg file and all elements
-
-	    // The following 5 line no longer needed, code is included in mdnjs file
-        //  $scriptNode = $doc->createElement("script");
-        //  $rootNode->appendChild($scriptNode);
-	     // $svg_js = file_get_contents(drupal_get_path('module', 'mdn') . '/SVGjs2.js'); 
-	     // $cdata = $doc->createCDATASection($svg_js);
-		 // $scriptNode->appendChild($cdata);
- 		
-		  $uniqueId = get_unique_svg_number();
-		  //$svgId = 'svg' . $uniqueId; // commented for testing, uncomment for final version 
-		 // $rootNode->setAttribute("id", $svgId);
-          $svgId = $rootNode->getAttribute("id"); // remove in final version
+          // Giving the svg a unique id, since multiple diagrams might be used in the site, each has to have a unique id
+		  $uniqueId = get_unique_svg_number(); 
+		  $svgId = 'svg' . $uniqueId; 
+		  $rootNode->setAttribute("id", $svgId);
           $svg_id = $svgId;
  
 		  $rootNode->setAttribute("prepared", 'yes');
           
+		  //Giving the svg elements unique ids
+		  //Other types of svg elements can be added if needed
 		  $elem_count =1;
-          $elems = $doc->getElementsByTagName('path');
+          $elems = $doc->getElementsByTagName('path');  
           foreach ($elems as $elem) {
 			 $elem_id =  $elem->getAttribute("id"); 
 			 if($elem_id != '') 
@@ -168,7 +211,6 @@ function get_and_prepare_diagram($node, &$svg_id){
           }
 		  
 		  $newContents = $doc->saveXML();
-		  // Commented for testing, uncomment for final version
           file_put_contents($file->uri, $newContents);
 		  
 		  save_diagram_colors($node->nid, $svgid, default_fill_hover_color, default_fill_select_color, default_fill_highlight_color, default_stroke_hover_color, default_stroke_select_color, default_stroke_highlight_color );
@@ -181,24 +223,29 @@ function get_and_prepare_diagram($node, &$svg_id){
 	  return $newContents;
 }
 
+/**
+ * Return the content of the main MDN block
+ *
+ * @return string
+ *   HTML content of the mdn block
+ */
 function get_mdn() {
 
-  drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js');
-  drupal_add_js(drupal_get_path('module', 'mdn') . '/jquery.simplemodal.1.4.4.min.js');
+  drupal_add_js(drupal_get_path('module', 'mdn') . '/mdnjs.js'); // mdn front end javascript code
+  drupal_add_js(drupal_get_path('module', 'mdn') . '/jquery.simplemodal.1.4.4.min.js'); // library used for modal overlay windows
   
-  drupal_add_css(drupal_get_path('module', 'mdn') . '/mdn.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
+  drupal_add_css(drupal_get_path('module', 'mdn') . '/mdn.css', array('group' => CSS_DEFAULT, 'type' => 'file')); // mdn css 
  
-  $default_layout = 2; // default number of diagrams to display
+  $default_layout = 2; // default max number of diagrams to display
 
   $resultHtml='<div id="mdnContainer">'  
                 .'<div id="mdnButtonContainer">'
                    . '<button type="submit" value="Submit" class="mdnButton" onClick="clearSelections();">Clear Selections</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="fullScreen();">Full Screen</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="displayDiagramBrowser();">Select Diagrams</button>'
-				   . '<button type="submit" value="Submit" class="mdnButton" onClick="relatedContent();">Related Content</button>'
-				   . '<button type="submit" value="Submit" class="mdnButton" onClick="heatmap();">userData</button>';
+				   . '<button type="submit" value="Submit" class="mdnButton" onClick="relatedContent();">Related Content</button>';
 
-   if (user_access('diagram: Create new content')) {
+   if (user_access('diagram: Create new content')) { // authoring buttons
       $resultHtml = $resultHtml 
 	               . '<button type="submit" value="Submit" class="mdnButton" onClick="connectionsLanuch();">Connections</button>'
 				   . '<button type="submit" value="Submit" class="mdnButton" onClick="colorWinLanuch();">Colors</button>';
@@ -215,8 +262,6 @@ function get_mdn() {
 					      . '<button id="diagramBrowserCancel" type="submit" value="Submit" class="mdnButton" onClick="DiagramBrowserCancel();">Cancel</button>'
 					    .'</div>';
 						
-  //                        .'<form id="contentBrowserForm">'
-//					   .'</form>'  
   $contentBrowser  = '<div id="conWinContent" style="display:none" class="conWinContentClass d2c">'
                           .'<input type="text" name="mdnnodeName" class="connectionTextbox" id="textBoxNodeEntry" disabled>' 
 					      .'<button id="TextBoxConnection" type="submit" value="Submit" class="mdnButton" onClick="c2dConnection();">Connect</button>'						  
@@ -236,40 +281,25 @@ function get_mdn() {
 					  
   $colorsWindow = '<div id="colorWinContainer" class="colorWinContainerClass" style="display:none">'
 				  .'</div>';						
-					  	
-/*
-				  .'<div id="test1">'
-				  .'</div>'
-				  .'<div>'
-				  . '<input type="text" id="mdnHoverColorText"/>'
-				  .'</div>'
-*/
 
-						
-	
-
-   $diagramCounter=0;  
-   $layoutCounter =0; // counting diagrams with displayonLoad = true (will be under 2)   
+  $diagramCounter=0;  
+  $layoutCounter =0; // counting diagrams with displayonLoad = true (will be under 2)   
 						
    $query = new EntityFieldQuery();
    $query->entityCondition('entity_type', 'node')
 	 ->entityCondition('bundle', 'diagram');                    
-	// ->fieldCondition('field_display_on_load', 'value', 1, '=');
-	// ->fieldOrderBy('field_display_on_load', 'entity_id', 'ASC'); check this to load the first few diagrams 
     
    $result = $query->execute();
    if (empty($result['node'])) {  // No diagrams found
-	   //	return '<p>No diagrams found</p>';
 		$resultHtml= $resultHtml .  '<div class="svgContainer mdnMediumScreen"></div>';
 		$resultHtml= $resultHtml .  '<div class="svgContainer mdnMediumScreen"></div>';
    }
    else{
 	  $nodes = entity_load('node', array_keys($result['node']));
-       // $res = print_r($nodes, true);
       $aa='';
+
       foreach ($nodes as $node) {
 	     $fidThumbnail = $node->field_thumbnail[LANGUAGE_NONE][0]['fid'];
-	     //$hide_elements = $node->field_hide_svg_elements[LANGUAGE_NONE][0]['value'];
 	     $fileThumbnail = file_load($fidThumbnail); 
 	     $aa=file_create_url($fileThumbnail->uri);
          $diagramBrowser = $diagramBrowser 
@@ -293,230 +323,34 @@ function get_mdn() {
    
    $resultHtml = $resultHtml . '</div></div>'; // close AllSVGContainer div, mdnContainer div
 
-   // Following lines Just for testing
- 
- $diagramBrowser = $diagramBrowser  . '</div>';
-   /*
-   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-    . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
-   . '<div class="box"><img src="' . $aa . '"><p>Example Title</p></div>'
- . '<p>You can press ESC to close this dialog or click <a href="#" class="simplemodal-close">close</a>.</p>'
- */
+   $diagramBrowser = $diagramBrowser  . '</div>';
    
-   $resultHtml = $resultHtml . $diagramBrowser . $connectionWindow . $colorsWindow;
-   
-   $heatmapSQl = "SELECT sub_section, page_section, count(minid) as cnt FROM drupaltemplog group by sub_section,page_section";
+   $resultHtml = $resultHtml . $diagramBrowser . $connectionWindow . $colorsWindow; // diagramBrowser, connectionWindow, and colorsWindow will be populated by ajax requests
    
    $settingsArr=array(
                       'connections' => get_connections(), 
 					  'visualElements' => get_visual_elements_with_connections(),
-					  'heatmap' => get_heatmap5($heatmapSQl), 
-					  'heatmapMin' => min_heatmap($heatmapSQl), 
-					  'heatmapMax' => max_heatmap($heatmapSQl), 
-					  'userData' => user_firstSession(),
 					  'LayoutNoOfDiagrams' => $layoutCounter,
 					  'NoOfDiagrams' => $diagramCounter,
 					  'diagram_colors' => $diagram_colors);
 					  
 					  // connections -> all connections
-					  //Visaul elements -> all visual elements having connections to other elements
+					  // Visual elements -> all visual elements having connections to visual elements and/or content elements. 
+					  //                    Visual elements with no connections are not included
+					  // diagram_colors includes colors for all diagrams @see save_diagram_colors, set_diagram_colors
+					  
    drupal_add_js($settingsArr, 'setting');
-    
 	
    return  $resultHtml;  
-  
 }
 
-function min_heatmap($heatmapSQl){
-	$SQLStr = "select min(cnt) as minCnt from (" . $heatmapSQl . ") as t1";
-	$result = db_query($SQLStr);
-	$min=0;
-    foreach ($result as $record) {
-	  $min = $record->minCnt;
-	}
-return $min;
-}
-
-function max_heatmap($heatmapSQl){
-	$SQLStr = "select max(cnt) as maxCnt from (" . $heatmapSQl . ") as t1";
-	$result = db_query($SQLStr);
-	$max=0;
-    foreach ($result as $record) {
-	  $max = $record->maxCnt;
-	}
-return $max;
-}
-
-
-// function for research purposes, will be removed
-function get_heatmap($heatmapSQl){
-	// range 7 to 124
-	//$result = db_query("SELECT * FROM heatmapFirstSessionAllUsersHoverCount");
-	$result = db_query($heatmapSQl);
-    $count=0;   
-	$arr=array();
-    foreach ($result as $record) {
-	  $arr[$count][0] = $record->sub_section;
-	  $arr[$count][1] = $record->cnt;
-	  $arr[$count][2] = 'AGView';
-    $count++;	 
-	}
-	
-return $arr;
-}
-
-function get_heatmap2(){ //click count for all users for first session
-    // range 1 to 8
-	$result = db_query("SELECT sub_section, count(minid) as cnt FROM UserCleanGroupHover where ACTION ='click' group by sub_section");
-    $count=0;   
-	$arr=array();
-    foreach ($result as $record) {
-	  $arr[$count][0] = $record->sub_section;
-	  $arr[$count][1] = $record->cnt;
-	  $arr[$count][2] = 'AGView';
-    $count++;	 
-	}
-	
-return $arr;
-}
-
-function get_heatmap3(){ //click count for all users for second session
-    //  range 1 to 11
-	$result = db_query("SELECT page_section, sub_section, count(minid) as cnt FROM UserCleanGroupHover where ACTION ='click2' group by page_section, sub_section");
-    $count=0;   
-	$arr=array();
-    foreach ($result as $record) {
-	  $arr[$count][0] = $record->sub_section;
-	  $arr[$count][1] = $record->cnt;
-	  $arr[$count][2] = $record->page_section;
-    $count++;	 
-	}
-	
-return $arr;
-}
-
-function get_heatmap4(){ //hover count for all users for second session
-    // range 1 to 68
-	$result = db_query("SELECT page_section, sub_section, count(minid) as cnt FROM UserCleanGroupHover where ACTION ='hoverout' group by page_section, sub_section");
-    $count=0;   
-	$arr=array();
-    foreach ($result as $record) {
-	  $arr[$count][0] = $record->sub_section;
-	  $arr[$count][1] = $record->cnt;
-	  $arr[$count][2] = $record->page_section;
-    $count++;	 
-	}
-	
-return $arr;
-}
-
-function get_heatmap5($heatmapSQl2){
-	prepare_heatmap5();
-	
-    $result = db_query($heatmapSQl2);
-    $count=0;   
-	$arr=array();
-    foreach ($result as $record) {
-	  $arr[$count][0] = $record->sub_section;
-	  $arr[$count][1] = $record->cnt;
-	  $arr[$count][2] = $record->page_section;
-      $count++;	 
-	}
-	
-    return $arr;
-}
-
-
-function prepare_heatmap5(){
-	db_delete('templog')->execute();
-  
-   $result = db_query("SELECT * FROM UserCleanGroupHover where (ACTION = 'hoverout' or ACTION = 'click2' or ACTION = 'page_lookup') order by user_id, minid");
-    $mode= 'regular';
-	$counter=0;
-	//$starting_time='';
-	$user_id ='';
-
-	foreach ($result as $record) {
-	 
-	 if($mode == 'regular'){
-  	      if(strtolower($record->sub_section) == 'sql injection' && $record->ACTION == 'page_lookup'){ //$record->sub_section == 'b15' && $record->ACTION == 'hoverout'
-		     $mode='harvest';
-			 $user_id =$record->user_id;
-			 //$starting_time = $record->action_time;
-			 $counter=0;
-	      }	
-	  }
-	  
-      else if($mode == 'harvest'){
-		  
-		if($counter <= 15 && $record->user_id == $user_id){
-	          
-		         //if($record->sub_section != 'b15'){ //true
-				     db_insert('templog') 
-                          ->fields(array(
-                              'user_id' => $record->user_id,
-                              'minid' => $record->minId,
-                              'page_section' => $record->page_section,
-							  'sub_section' => $record->sub_section,
-							  'action_time' => $record->action_time,
-							  'action' => $record->ACTION,
-                            ))->execute();
-						
- 			         $counter++;
-				// }
-		}
-		else {
-			  if($counter > 15){
-				$mode= 'regular'; 
-			  }
-		}
-		
-	 }
-	  
-	
-    }
-}
-
-
-//SELECT * FROM `UserCleanGroupHover` WHERE (action ='hoverout' or action = 'click2') and (sub_section = 'b15' or sub_section = 'c31') order by user_id, minid
-/*
-SELECT * 
-FROM  `UserCleanGroupHover` 
-WHERE (
-
-ACTION =  'hoverout'
-OR ACTION =  'click2'
-)
-AND (
-sub_section =  'b15'
-OR sub_section =  'c31'
-)
-ORDER BY user_id, minid
-*/
-function user_firstSession(){
-	$result = db_query("SELECT * FROM UserCleanGroupHover where user_id = 2006 and minid >= 24293 and minid <= 25225 order by minid");
-    $count=0;   
-	$arr=array();
-    foreach ($result as $record) {
-	  $arr[$count][0] = $record->action_time;
-	  $arr[$count][1] = $record->page_section;
-	  $arr[$count][2] = $record->sub_section;
-	  $arr[$count][3] = $record->ACTION;	  
-      $count++;	 
-	}
-	
-return $arr;
-	
-}
-
+/**
+ * Returns element connections from the Connections table in the database
+ *
+ * @return array
+ *   element connections
+ */
+ 
 function get_connections(){
    
    $result = db_query("SELECT * FROM drupalConnections");
@@ -533,6 +367,14 @@ function get_connections(){
 return $arr;
 }
 
+/**
+ * Returns all visual elements having connections to visual elements and/or content elements. 
+ * Visual elements with no connections are not included
+ *
+ * @return array
+ *   visual elements
+ */
+ 
 function get_visual_elements_with_connections(){
    
    $result = db_query("select view1 as viewid, element1 as elementid from drupalConnections "
@@ -552,14 +394,12 @@ function get_visual_elements_with_connections(){
 return $arr;
 }
 
-
-/*
-function mdn_init() {
-  drupal_add_js('misc/jquery.form.js');
-  drupal_add_library('system', 'drupal.ajax');
-}
-*/
-
+/**
+ * Returns unique number to be used with a new diagram (svg)
+ *
+ * @return int
+ *   svg id
+ */
 function get_unique_svg_number(){
 	 $id = variable_get('max_svg_id', 0);
 	 $id++;
@@ -568,7 +408,10 @@ function get_unique_svg_number(){
 	 return $id;
 }
 
-
+/**
+ * Implements hook_menu().
+ */
+ 
 function mdn_menu() {
   $items['mdn/get/ajax'] = array(
     'page callback' => 'mdn_get_node',
@@ -577,16 +420,6 @@ function mdn_menu() {
 	'delivery callback' => 'mdn_magic', 
   );
   
-  //'page arguments' => array(3),
-
-/*  
-  $items['ajaxreader'] = array(
-    'page callback' => 'ajax_link_response',
-    'access callback' => 'user_access',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  ); 
-*/  
   $items['mdn/hover'] = array(
     'page callback' => 'mdn_addc2dconnection',
 	'type' => MENU_CALLBACK,
@@ -640,13 +473,6 @@ function mdn_menu() {
     'access arguments' => array('access content'),
 	'delivery callback' => 'mdn_node_titles_delivery', 
   );
-  /*
-  $items['mdn/addc2dconnection/'] = array(
-    'page callback' => 'mdn_addc2dconnection',
-	'type' => MENU_CALLBACK,
-    'access arguments' => array('access content'),
-  );
-  */
   
   $items['mdn/saveDiagramColors'] = array(
     'page callback' => 'mdn_save_diagram_colors',
@@ -657,6 +483,19 @@ function mdn_menu() {
   return $items;
 }
 
+/**
+ * Return titles of related (connected) nodes for a specific visual element. This function is used to display related (connected) nodes for a visual element along with a button for each title
+ * the buttons is used to delete the connection between the visual element and the node
+ *
+ * @param string $viewId
+ *   the svg id of the visual element
+ * @param string $elementId
+ *   the element id for the visual element
+ *
+ * @return string
+ *   HTML containing a list of titles and buttons
+ */
+ 
 function mdn_node_titles($viewId, $elementId){
 
   $SQL = "SELECT nid,title FROM drupalnode inner join drupalConnections on drupalnode.nid = drupalConnections.element2 where drupalConnections.view1=:view and drupalConnections.element1=:element and drupalConnections.view2='cnt1'"
@@ -677,11 +516,36 @@ function mdn_node_titles($viewId, $elementId){
 	return $result_html;
 }
 
+/**
+ * Delivery function for mdn_node_titles
+ * Delivery function is used to populate a certain Div using ajax. 
+ * if delivery function is not used, the HTML in cnt will be wrapped with Drupal header, sides, ... etc. and a whole page will be returned instead of the wanted html snippet.
+ *
+ * @param string $cnt
+ *   HTML string from mdn_node_titles
+ *
+ * @return string
+ *   the same cnt HTML string
+ */
+ 
 function mdn_node_titles_delivery($cnt){
 	 print $cnt;
 }
 
-
+/**
+ * Delete a connection between two elements
+ *
+ * @param string $view1
+ *   the svg id of the first visual element
+ * @param string $element1
+ *   the element id of the first visual element
+ * @param string $view2
+ *   the svg id of the second visual element
+ * @param string $element2
+ *   the element id of the second visual element
+ *
+ */
+ 
 function mdn_delete_connection($view1, $element1, $view2, $element2){
 	$and1 = db_and()->condition('view1', $view1)->condition('element1', $element1)->condition('view2', $view2)->condition('element2', $element2);
 	$and2 = db_and()->condition('view2', $view1)->condition('element2', $element1)->condition('view1', $view2)->condition('element1', $element2);
@@ -690,6 +554,19 @@ function mdn_delete_connection($view1, $element1, $view2, $element2){
 	db_delete('Connections')->condition($or)->execute();
 }
 
+/**
+ * Creates a connection between two elements
+ *
+ * @param string $view1
+ *   the svg id of the first visual element
+ * @param string $element1
+ *   the element id of the first visual element
+ * @param string $view2
+ *   the svg id of the second visual element
+ * @param string $element2
+ *   the element id of the second visual element
+ *
+ */
 function mdn_create_connection($view1, $element1, $view2, $element2){
 	
 	db_insert('Connections') 
@@ -701,36 +578,82 @@ function mdn_create_connection($view1, $element1, $view2, $element2){
    ))->execute();
 }
 
+/**
+ * Wrapper for save_diagram_colors. it is used by mdn_menu
+ *
+* @param int $nid 
+ *   Diagram node id
+ * @param string $fill_hover_color
+ *   Fill color in hexdecimal used when mouse hovers over the diagram element (shape)
+ * @param string $fill_select_color
+ *   Fill color in hexdecimal used when diagram element (shape) is clicked
+ * @param string $fill_highlight_color
+ *   Fill color in hexdecimal used when diagram element (shape) is highlighted (e.g. because a related element in another diagram is selected)
+ * @param string $stroke_hover_color
+ *   Stroke color in hexdecimal used when mouse hovers over the diagram element (shape)
+ * @param string $stroke_select_color
+ *   Stroke color in hexdecimal used when diagram element (shape) is clicked
+ * @param string $stroke_highlight_color
+ *   Stroke color in hexdecimal used when diagram element (shape) is highlighted (e.g. because a related element in another diagram is selected)
+
+ * @see mdn_save_diagram_colors
+ */
+ 
 function  mdn_save_diagram_colors($nid, $fill_hover_color, $fill_select_color, $fill_highlight_color, $stroke_hover_color, $stroke_select_color, $stroke_highlight_color){
 	save_diagram_colors($nid, '', '#' . $fill_hover_color, '#' . $fill_select_color, '#' . $fill_highlight_color, '#' . $stroke_hover_color, '#' . $stroke_select_color, '#' . $stroke_highlight_color);
 }
 
-
+/**
+ * Wrapper for get_and_prepare_diagram. it is used by mdn_menu
+ *
+* @param int $diagram_nid 
+ *   Diagram node id
+ *
+ * @see get_and_prepare_diagram
+ */
 function get_diagram($diagram_nid){
 	if($diagram_nid != 'cnt1'){
 	   $nodes = entity_load('node', array($diagram_nid));
 	   $svg_internal_id='';
 	   return get_and_prepare_diagram(array_shift($nodes), $svg_internal_id);
 	}
-//	else {
-
-	//}
 }
 
+/**
+ * Delivery function for get_diagram
+ * Delivery function is used to populate a certain Div using ajax. 
+ * if delivery function is not used, the HTML in cnt will be wrapped with Drupal header, sides, ... etc. and a whole page will be returned instead of the wanted html snippet.
+ *
+ * @param string $cnt
+ *   HTML string from get_diagram
+ *
+ * @return string
+ *   the same cnt HTML string
+ */
+ 
 function get_diagram_delivery($cnt){
 	 print $cnt;
 }
 
-
+/**
+ * returns html code for one or two diagrams. 
+ * The diagram browser window allows the user to select one or two diagrams to be displayed; this function returns these diagrams
+ *
+ * @param int $diagram1_nid
+ *   nid of the first diagram
+ * @param int $diagram2_nid
+ *   nid of the second diagram
+ *
+ * @return string
+ *   HTML code for the diagram(s)
+ */
+ 
 function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
-   
    
    $query = new EntityFieldQuery();
    $query->entityCondition('entity_type', 'node')
 	 ->entityCondition('bundle', 'diagram')
 	 ->entityCondition('entity_id', array($diagram1_nid, $diagram2_nid), 'IN');                    
-	// ->fieldCondition('field_display_on_load', 'value', 1, '=');
-	// ->fieldOrderBy('field_display_on_load', 'entity_id', 'ASC'); check this to load the first few diagrams 
     
    $result = $query->execute();
    
@@ -750,6 +673,14 @@ function mdn_diagram_browser($diagram1_nid, $diagram2_nid){
 
 }
 
+/**
+ * returns html code for colors window.  
+ * This window allows site authors to change color scheme used for hovered, selected, and highlighted elements 
+ *
+ * @return string
+ *   HTML code for the colors window
+ */
+ 
 function mdn_colors_window(){
 	$resultHtml = '';
 	$diagramDropDownList ='';			  
@@ -757,7 +688,6 @@ function mdn_colors_window(){
 	$query = new EntityFieldQuery();
     $query->entityCondition('entity_type', 'node')
 	  ->entityCondition('bundle', 'diagram');
-	 // ->fieldOrderBy('field_display_on_load', 'value', 'DESC'); 
 	
 	$result = $query->execute();
 
@@ -773,16 +703,14 @@ function mdn_colors_window(){
 	foreach ($diagrams as $node) {
 	   $counter++;
 
-	   if($counter == 1){
+	   if($counter == 1){ // return first diagram, and mark the diagram's option as selected
 		  $svg_internal_id=''; 
 		  $diagramContents =  get_and_prepare_diagram($node, $svg_internal_id); 
 	      $resultHtml = $resultHtml . '<div id ="colorWinDiagram" class="colorWinDiagramClass">' . $diagramContents . '</div>';
-		  //$diagramDropDownList = $diagramDropDownList
-	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
           $diagramDropDownList = $diagramDropDownList
 	                         . '<option value="' . $node->nid . '" selected="selected">' . $node->title . '</option>';	
 	   }
-	   else{
+	   else{ // for other diagrams, add an option in the drop down list so users can change the diagram
 	      $diagramDropDownList = $diagramDropDownList
 	                         . '<option value="' . $node->nid . '">' . $node->title . '</option>';		   	   
 	   }
@@ -824,9 +752,17 @@ function mdn_colors_window(){
     return $resultHtml;
 }
 
+/**
+ * returns html code for connections window.  
+ * This window allows site authors to connect visual elements to other visual elements and visual elements to content elements (nodes)
+ *
+ * @return string
+ *   HTML code for the connections window
+ */
+ 
 function mdn_connections_window(){
 	
-    /*
+    /* layout for the connections window
 	div conWinContainer  display:none
 	  div conWinTop     
 		 div conWinDiagrams
@@ -837,8 +773,6 @@ function mdn_connections_window(){
 	  div conWinButtom  //place holder	
 	*/
 	
-	
-	
 	$resultHtml = '';
 				  
 	$diagramDropDownList ='';			  
@@ -847,7 +781,6 @@ function mdn_connections_window(){
 	$query = new EntityFieldQuery();
     $query->entityCondition('entity_type', 'node')
 	  ->entityCondition('bundle', 'diagram');
-	 // ->fieldOrderBy('field_display_on_load', 'value', 'DESC'); 
 	
 	$result = $query->execute();
 
@@ -867,16 +800,12 @@ function mdn_connections_window(){
 
 	   if($counter == 1){
 	      $resultHtml = $resultHtml . '<div id ="conWinDiagram1" class="conWinDiagram1Class d2d">' . $diagramContents . '</div>';
-		  //$diagramDropDownList = $diagramDropDownList
-	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
-			$nid1 = $node->nid;
+			$nid1 = $node->nid; // will be used to create an option element below
 			$title1 = $node->title;
 	   }
 	   else if($counter == 2){
 	      $resultHtml = $resultHtml . '<div id ="conWinDiagram2" class="conWinDiagram2Class d2d">' . $diagramContents . '</div>';
-		  //$diagramDropDownList = $diagramDropDownList
-	        //                 . '<option value="' . $node->nid . '"  selected="selected">' . $node->title . '</option>';
-			$nid2 = $node->nid;
+			$nid2 = $node->nid; // will be used to create an option element below
 			$title2 = $node->title;
 	   }
 	   else{
@@ -888,33 +817,27 @@ function mdn_connections_window(){
     $resultHtml = $resultHtml  
 	             .'<div id="buttomBuffer" style="display:none">' 
 	                 .'<select id="diagramSelectionList1" onChange="selectListChanged(this);">'
-						   . '<option value="' . $nid1 . '"  selected="selected">' . $title1 . '</option>'
+						   . '<option value="' . $nid1 . '"  selected="selected">' . $title1 . '</option>' 
 						   . '<option value="' . $nid2 . '">' . $title2 . '</option>'
 						   . $diagramDropDownList
-					. '<select>';
+					. '<select>'; // in this drop down list, the option of the first diagram is selected
 									
-	// . '<div id="diagramSelectionList1Container">' . '</div>';
-		
 		$resultHtml = $resultHtml 
 		                 . '<button type="submit" value="Submit" class="mdnButton" onClick="CreateConnection();">Create Connection</button>'
                          . '<button type="submit" value="Submit" class="mdnButton" onClick="ClearLeftSide();">Clear Selections</button>'
                          . '<button type="submit" value="Submit" class="mdnButton" onClick="ClearRightSide();">Clear Selections</button>'						 
 					     . '<button type="submit" value="Submit" class="mdnButton" onClick="DeleteConnection();">Delete Connection</button>';
 
-		 //. '<div id="connectionsWindowButtons">' . '</div>';		 
-		
-		
         $resultHtml = $resultHtml . '<select id="diagramSelectionList2" onChange="selectListChanged(this);">'
 									       . '<option value="cnt1">Content: Drupal Nodes</option>'
 										   . '<option value="' . $nid1 . '">' . $title1 . '</option>'
 										   . '<option value="' . $nid2 . '"  selected="selected">' . $title2 . '</option>'
 									       . $diagramDropDownList
-								  . '<select>';
+								  . '<select>'; // in this drop down list, the option of the second diagram is selected
 							
         $resultHtml = $resultHtml . '<div id="connectionWindowStatus">Select diagram elements or Drupal nodes in each side and click connect</div>'; 								
 
-//. '<div id="diagramSelectionList2Container">'  . '</div>';
-							  
+				  
     $resultHtml = $resultHtml . '</div>'; //buttomBuffer		
   
     return $resultHtml;
@@ -935,35 +858,20 @@ function mdn_colors_window_delivery($cnt){
 	 print $cnt;
 }
 
-/*
-function ajax_link_response($type = 'ajax', $nid = 0) {
-  // Code from https://github.com/seanbuscay/drupal-ajax-demo	
-  $output = ajax_reader_load_noder($nid);
-  if ($type == 'ajax') {
-    $commands = array();
-    $commands[] = ajax_command_replace('#content', '<div id="content">' . $output . '</div>');
-    $page = array(
-      '#type' => 'ajax',
-      '#commands' => $commands
-    );
-    ajax_deliver($page);
-  }
-  else {
-    $output = '<div id="content">' . $output . '</div>';
-    return $output;
-  }
-}
-
-function ajax_reader_load_noder($nid = 0) {
-  $node = node_load($nid);
-  if ($node) {
-    $vnode = node_view($node);
-    return theme("node", $vnode);
-  }
- // return views_embed_view ('front','page_1', $nid);
-}
-*/
-
+/**
+ * Creates a connection between a content element(node) and a visual element 
+ *
+ * @param string $diagramId
+ *   visual element diagram id
+ * @param string $visualElementId
+ *   visual element id
+ * @param string $mdnNodeTitle
+ *   title of content element
+ * 
+  * @return array of one number
+ *   nid of content element
+ */
+ 
 function mdn_addc2dconnection($diagramId, $visualElementId, $mdnNodeTitle){
    $result = db_query("Select nid from {node} where title = :nodeTitle", array(':nodeTitle' => $mdnNodeTitle));
    
@@ -992,40 +900,23 @@ function mdn_addc2dconnection($diagramId, $visualElementId, $mdnNodeTitle){
    drupal_json_output($jsonstring);
 }
 
-function mdn_hover($viewId, $elementId){
-   $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element and view2 != 'cnt1') or (view2 = :view and element2 = :element and view1 != 'cnt1')", 
-   array(':view' => $viewId, ':element' => $elementId));
-   
-    $count=0;   
-	$arr=array();
-    foreach ($result as $record) {
-	  if($viewId === $record->view1 && $elementId === $record->element1){
-	     $elem = $record->element2;
-		 $view = $record->view2;
-	  }	 
-	  else{
-	     $elem = $record->element1;   
-		 $view = $record->view1;
-	  }
-	$arr[$count]= array('viewId' => $view, 'elementId' => $elem);
-    $count++;	 
-	}
-   
-   $arr[$count]= array('viewId' => $viewId, 'elementId' => $elementId); //adding source element 
+/**
+ * Retrieves a list of links of content elements (nodes) related to the given list of visual elements
+ * This function is used in diagram to content browsing. When a user selects multiple visual elements, MDN sends list of these visual elements to this function
+ * to get a list of related content elements (nodes)
+ *
+ * @param string $visualElements
+ *   a string containing a list of visual elements separated by underscore
+ * 
+ * @return HTML code for a list of links to the related content elements
+ */
  
-   $jsonstring = drupal_json_encode($arr);
-   drupal_json_output($jsonstring);
-}
-
 function mdn_get_node($visualElements){
 	$links=array();
 	$pieces = explode("_", $visualElements);
 	
-	//return '<p>' . $pieces[0] . ' ' . $pieces[1] . ' ' . $pieces[2] . ' ' . $pieces[3] . '</p>';
-	
 	for($i=0;$i<count($pieces);$i+=2){
 		$links= array_merge($links, mdn_get_content_for_visual_element($pieces[$i],$pieces[$i+1],count($links))); 
-		//return '<p>' . $pieces[$i] . ' ' . $pieces[$i+1] . ' ' . count($links) . '</p>';
 	}
 	
 	
@@ -1041,6 +932,7 @@ function mdn_get_node($visualElements){
   
   return $content;
 }
+
 
 function mdn_get_content_for_visual_element($viewId, $elementId, $count_start) {
 
@@ -1064,171 +956,16 @@ function mdn_get_content_for_visual_element($viewId, $elementId, $count_start) {
 	  if($nodeRec){
 		$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'node/' . $nodeRec->nid);
 	  }
-	//  else{
-		  // delete this connection
-	 // }
+
 	  $count = $count +1;
   }
   
   return $links;
 }
 
-/*
-function mdn_get_node($viewId, $elementId) {
-  /*
-     retrieve connections
-	 
-	 if one 
-	    node load as usual
-	 else
-        create a list with node title and a link		 
-  
-  
-  $result = db_query("SELECT * FROM drupalConnections where (view1 = :view and element1 = :element and view2='cnt1') or (view2 = :view and element2 = :element and view1='cnt1')", 
-   array(':view' => $viewId, ':element' => $elementId));
-   
-  $content =""; 
-  $count=0;
-  $firstNid="";
-  $elem="";
-  
-/*
- $links =  array(
-  'item1' => array( 'title' => '1st Item', 'href' => 'path/one' ),
-  'item2' => array( 'title' => '2nd Item', 'href' => 'path/two' ),
-);
-
-  
-  $links = array();
-  foreach ($result as $record) {
-	  if($viewId === $record->view1 && $elementId === $record->element1){
-	     $elem = $record->element2;
-	  }	 
-	  else{
-	     $elem = $record->element1;   
-	  }
-      
-	  $nodeRec = db_query("SELECT * FROM {node} where nid = :nid", array(':nid' => $elem))->fetchobject();
-	  if($nodeRec){
-		 //$content = $content . "<li>" . $nodeRec->title . "</li>";  
-		// $links = array('item1' => array( 'title' => $nodeRec->title, 'href' => '?q=node/' . $nodeRec->nid ));
-		$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'node/' . $nodeRec->nid);
-		//$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'ajaxreader/nojs/' . $nodeRec->nid, 'attributes' => array('class' => 'use-ajax'));
-		//$links['item' . $count] = array( 'title' => $nodeRec->title, 'href' => 'jQuery("#content").load("?q=mdn/get/ajax/svg1/b7');
-		//jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
-		
-	  }
-	//  else{
-		  // delete this connection
-	 // }
-
-	  $count = $count +1;
-	  if($count == 1) 
-	     {$firstNid= $elem;}
-  }
-  
-  if($count <= 0){
-	  $content = "<ul><li>No result found</li></ul>";
-  }
-  else if($count == 1){
-      $node = node_load((int) $firstNid);
-	  $cnt = node_view($node, 'teaser');
-	  $content = drupal_render($cnt);
-  }
-  else{
-	  //$content =$content . "</ul>";   
-	  $vars = array('links' => $links,
-                    'attributes' => array('class' => 'links'),
-					'heading' => array('text' => 'Related Pages', 'level' => 'h2'));
-	  //$content= theme_links($links, $attributes = array('class' => 'links'));
-	  $content= theme_links($vars);
-	// $content = theme('links' => $links, 'attributes' => array('class' => 'links'));
-  }
-  
-  return $content;
-  
- //   $commands = array();
-   // $commands[] = ajax_command_replace('#content', '<div id="content">' . $content . '</div>');
-   // $page = array(
-    //  '#type' => 'ajax',
-     // '#commands' => $commands
-    //);
-    //ajax_deliver($page);
-  
-  //return "<p>" . $viewId . " " . $elementId . "</p>";
-}
-*/
-
-function mdn_visited_content(){
-	//Original code snippet from https://www.drupal.org/node/533358
-	//modified to join the nids of the visited nodes with the connections table to get nids of visual elements
-	
-// the number of items to return, alter to suit.
-$limit = 10;
-
-//Only show pages whose paths match this expression. Use SQL 'like' syntax. Change to suit.
-$url_filter = '';
-
-global $user;
-$where = array('uid = %d');
-$args = array($user->uid);
-
-if (!$user->uid) {
-  // For anonymous users you can add a condition on their hostname/IP address:
-  $where[] = "hostname = '%s'";
-  $args[] = ip_address();
-  // Or you can check by PHP session name, which might be more reliable:
-  $where[] = "sid = '%s'";
-  $args[] = session_id();
-  // You can use either or both of the above conditions. If you do not want to
-  // use one of them, make sure to comment both lines of the condition out.
-}
-if (!empty($url_filter)) {
-  $where[] = "url LIKE '%s'";
-  $args[] = $url_filter;
-}
-
-$where = implode(' AND ', $where);
-$sql = "SELECT DISTINCT title, path FROM (SELECT path, title, uid, hostname, url FROM {accesslog} ORDER BY timestamp DESC) AS recent_paths WHERE $where";
-$result = db_query_range($sql, $args, 0, $limit);
-
-// Now walk through the results and display them
-while ($row = db_fetch_object($result)) {
-  $links[] = l($row->title ? $row->title : t('Home'), $row->path);
-}
-
-print theme('item_list', $links);
-}
-
 
 function mdn_magic($page_callback_result) {
-  // Only render content
 
-  // $content = drupal_render($page_callback_result);
-
-  // Add CSS ans JS files, add some markup
-  //$html = '<html><head><title></title>' . drupal_get_css() . drupal_get_js() . '</head><body class="jquery-ajax-load">' . $content . '</body></html>';
-
-  //print $content;
   print $page_callback_result;
 
-  // Perform end-of-request tasks.
-  //drupal_page_footer();
 }
-/**
- * Implementation of hook_theme().
- */
-/*
- function mdn_theme($existing, $type, $theme, $path) {
-  return array(
-    'mdn' => array(
-      'variables' => array(),
-    ),
-  ); // not sure if variables is correct or not, need to read about theming
-}
-
-
-function theme_mdn() {
-  return "<div id='mdn'><noscript>Enable JavaScript to see this awesome graph.</noscript></div>";
-}
-*/

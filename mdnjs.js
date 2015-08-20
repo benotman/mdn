@@ -1,5 +1,8 @@
-//(function ($) {
-	//var CurrentHoverElement=""; 
+/*
+Multiple Diagram Navigation Drupal Module
+
+*/
+
 	var CurrentHoverFill; 
     var CurrentHoverStroke; 
 	var CurrentHoverOpacity;  
@@ -28,22 +31,7 @@
 	
 	var layout;
 
-/*	
-    var rect = {
-   'hoverfill': "rgba(235,131,22,1)",
-   'hoverstroke': "rgba(184,16,16,1)",
-   'hoverstroke_width': "1.0px",
-
-   'highlightfill': "rgba(113,207,51,1)",
-   'highlightstroke': "rgba(113,207,51,1)",
-   'highlightstroke_width': "1.0px",
-
-   'selectfill': "rgba(49,96,62,1)",
-   'selectstroke': "rgba(116,88,36,1)",
-   'selectstroke_width': "1.0px",
-   };
-   */
-
+	// default diagram colors
     var rect = {
    'hoverfill': "rgb(235,131,22)",
    'hoverstroke': "rgb(184,16,16)",
@@ -59,7 +47,7 @@
    };
 
 
-function clearSelections(){
+function clearSelections(){ 
 	var i;
 	for(i=0;i<visualElements.length;i++){
 		if(visualElements[i][6] === 1 || visualElements[i][6] === 2){
@@ -77,27 +65,7 @@ function DiagramBrowserCancel(){
 }
 
 function DiagramBrowserOK(){
-	/*
-	 create a list of diagrams
-	 check if selected is less than layout
-        error
-     if selected is more 
-        error
-     else same
-    	change current diagrams_list	 
-	*/
-	/*
-	if # of selected < LayoutNoOfDiagrams
-       if # of selected < NoOfDiagrams
-         error
-	     return (stay in the same screen)
-       else
-         OK
-	     change LayoutNoOfDiagrams = # of selected
-    if # of selected > LayoutNoOfDiagrams	  
-       error
-       return (stay in the same screen)
-	*/
+
 	var count=0;
 	var diagramArr =[];
 	for (var i=0; i<Drupal.settings.NoOfDiagrams;i++){
@@ -107,22 +75,6 @@ function DiagramBrowserOK(){
 		}
 	}
 	
-	/*
-	 if(count >2)
-		 error
-	 else if 1
-	    layout = 1
-		CurrentDiagrams = 
-	 else if 2
-	 
-	 else 0
-	 
-	 onload
-	   I will get 0, 1, 2
-	   0 to 1 ok, 0 to 2 ok
-	   1 to 2 ok, 1 to 0 ok
-		 
-	*/
 	if(count > 2){
 		alert("You have selected " + count + " diagrams, Multiple Diagram Navigation supports only up to two diagrams. Please unselect some diagrams");
 		return;
@@ -153,15 +105,11 @@ function DiagramBrowserOK(){
 
 function DiagramBroswerOKCallBack(){
    	 SVGDisplayPreparation("svgContainer", sendClickToParentDocument, sendMouseOverToParentDocument, sendMouseOutToParentDocument);
-   /*
-   get all svg ids
-   add them to displayedDiagrams
-   get all selected, highlighted in current diagrams and change them
-   */   
+
     displayedDiagrams.length=0;
 	var relatedElements=[];
     jQuery("svg[prepared='yes']").each(function( index ) {
-       //console.log( index + ": " + jQuery( this ).attr("id") );
+
 	   displayedDiagrams[displayedDiagrams.length]=jQuery( this ).attr("id");
  	   
 	   relatedElements = jQuery.grep(visualElements, function(v,i) {
@@ -197,76 +145,6 @@ function DiagramBroswerOKCallBack(){
 }
 
 
-function heatmap(){
-
-  for (var i=0;i<Drupal.settings.heatmap.length;i++){
-	  
-	  var minCount = Drupal.settings.heatmapMin;
-	  var maxCount = Drupal.settings.heatmapMax;
-	  console.log("MinHeatmap =" + Drupal.settings.heatmapMin + " MaxHeatmap =" + Drupal.settings.heatmapMax)
-	  var value = ((Drupal.settings.heatmap[i][1] - minCount) / (maxCount - minCount));
-	  var aR = 255;   var aG = 255; var aB=255;  // RGB for our 1st color (blue in this case).
-      var bR = 0; var bG = 0; var bB=0;    // RGB for our 2nd color (red in this case).
- 
-      var red   = (bR - aR) * value + aR;      // Evaluated as -255*value + 255.
-      var green = (bG - aG) * value + aG;      // Evaluates as 0.
-      var blue  = (bB - aB) * value + aB;      // Evaluates as 255*value + 0.
-	 // console.log(Math.round(red) + ' ' + Math.round(green) + ' ' + Math.round(blue));
-	  var newRGB = 'rgba(' + Math.round(red) + ',' + Math.round(green) + ',' + Math.round(blue) + ',255)';
-	  //var newRGB = 'rgba(' + Math.round(red) + ',' + 0 + ',' + 0 + ',1)';
-	  if(Drupal.settings.heatmap[i][2] == 'AGView')
-	      jQuery("#" + "svg1_" + Drupal.settings.heatmap[i][0]).css("fill",newRGB);
-	  else
-		  jQuery("#" + "svg2_" + Drupal.settings.heatmap[i][0]).css("fill",newRGB).css("opacity","1"); 
-	  
-	  //console.log(Drupal.settings.heatmap[i][0] + " " + newRGB);
-  }
-	
-}
-
-var userDataCounter=-1;
-var userDataArr;
-
-function userData(){
-	
-	if(userDataCounter >= userDataArr.length){
-		alert("end browsing");
-		return;
-	}
-	
-	var viewid='';
-	if(userDataCounter>=0){
-		if(userDataArr[userDataCounter][1] == 'AGView'){
-		   changeStyle('', + 'svg1' + '_' + userDataArr[userDataCounter][2],'regular',0);	
-		}
-		else if(userDataArr[userDataCounter][1] == 'TreeView'){
-		   changeStyle('', + 'svg2' + '_' + userDataArr[userDataCounter][2],'regular',0);		
-		}
-	}
-	
-   userDataCounter++;	
-   if(userDataArr[userDataCounter][3] == 'click'){
-      if(userDataArr[userDataCounter][1] == 'AGView'){
-	      changeStyle('', 'svg1' + '_' + userDataArr[userDataCounter][2],'select',0); 
-      }
-	  else if(userDataArr[userDataCounter][1] == 'TreeView'){
-		  changeStyle('', 'svg2' + '_' + userDataArr[userDataCounter][2],'select',0); 
-	  }
-   }
-   else if(userDataArr[userDataCounter][3] == 'hover' || userDataArr[userDataCounter][3] == 'hoverout'){
-      if(userDataArr[userDataCounter][1] == 'AGView'){
-	      changeStyle('', 'svg1' + '_' + userDataArr[userDataCounter][2],'highlight',0); 
-      }
-	  else if(userDataArr[userDataCounter][1] == 'TreeView'){
-		  changeStyle('', 'svg2' + '_' + userDataArr[userDataCounter][2],'highlight',0); 
-	  }
-   }
-   else if(userDataArr[userDataCounter][3] == 'page_lookup') {
-	   alert("page lookup " + userDataArr[userDataCounter][2]);
-   } 	
-   
-   
-}
 
 function displayDiagramBrowser(){
 	jQuery("#diagramBrowser").modal({
@@ -280,7 +158,6 @@ function connectionsLanuch(){
 }
 
 function connectionsLanuchCallBack(){
-	//console.log("test" + jQuery("#connectionsWindow").html());
 	
 	if(jQuery("#conWinDiagrams").html() == 'No Diagrams Available'){
 	    alert('No diagrams are found in your site. \nYou need at least one diagram to start connecting diagram elements to Drupal nodes. In case of diagram to diagram connections, you need at leaast two diagrams');
@@ -376,14 +253,7 @@ function colorWinClose(){
 }
 
 function colorWinselectListChanged(theElement){
-	/*
-	  load diagram
-	   load diagram colors from array to temp, and to inputs
-	   
-	   
-	   
-	   should have button default_colors, copy colors, and paste colors
-	*/
+
 	jQuery("#colorWinDiagram").load("?q=mdn/getDiagram/" + jQuery('#colorWinSelectionList').val(), colorWinselectListChangedCallBack);	
 
     var colorWindowCurrentDiagram= jQuery("#colorWinContainer svg[prepared='yes']").attr("id");
@@ -420,11 +290,8 @@ function selectListChanged(theElement){
 		return;
 	}
 	
-	//console.log("val=" + jQuery('#diagramSelectionList' + thisSide).val());
 	
 	if(jQuery('#diagramSelectionList' + thisSide).val() === 'cnt1'){
-	   //jQuery("#connections_side" + thisSide).html(jQuery("#contentBrowser").html());
-	   //jQuery("#contentBrowser").html('');
 	   
 	   jQuery("#conWinDiagram" + thisSide).hide();
 	   jQuery("#conWinDiagram" + thisSide).removeClass("d2d").addClass("d2c");
@@ -483,7 +350,7 @@ function fullScreen(){
 		   	jQuery(".svgContainer").each(function(index){
 		       jQuery(this).removeClass("mdnFullScreen").addClass("mdnMediumScreen");
 	        });
-		   jQuery.modal.close(); // must call this!	
+		   jQuery.modal.close();	
 		}
 		
 	});
@@ -500,12 +367,7 @@ function getIndexOfElement(arr, viewId, elemId){
 }
 
 function svgElementClicked(theElement){
-      //jQuery("#content").load("?q=mdn/get/ajax/" + viewid + "/" + theElement.id);
-	   //window.open("?q=mdn/get/ajax/" + viewid + "/" + theElement.id, "_self");
-	/*
-       if selected or not
-    */	
-	//console.log(theElement.id);
+
 	if(svgElementHasConnections === false) // variable is set in mouseover. svg element has no connections 
 		return;                            // to visual nor content elements -> element is not clickable(selectable)
 	
@@ -589,9 +451,6 @@ function ConnectionsWindow_svgElementClicked(theElement){
     else
        return; //error		
     
-    //var result = jQuery.grep(connectionsWindow_selections[side], function(v,i) {
-      // return (v === IDs[1]);
-    //});
 	
 	var ind = connectionsWindow_selections[side].indexOf(IDs[1]);
     if(ind < 0){ // element is not selected
@@ -677,22 +536,6 @@ function CreateConnection(){
 	
 	jQuery("#connectionWindowStatus").html(newConnections + " connection(s) saved, " + oldConnections + " already exist(s)");
 
-	/*
-    for i=0 to side1.length
-	   grip visual element for side1 element 
-	   if does not exist
-	      add it, get original color from temp variables used by hover functions
-		  
-       for j=0 to side2.length
-          request server to add connection record
-          if i == 0
-	         grip visual element for side1 element 
-	         if does not exist
-	           add it, get original color from temp variables used by hover functions
-            		  
-		  add pair to connection array
-	   end for
-	*/
 }
 
 function DeleteConnection(){
@@ -744,24 +587,6 @@ function DeleteConnection(){
 
     jQuery("#connectionWindowStatus").html(deletedConnections + " connection(s) deleted");
 	
-	/*
-	   ensure one to many
-	   for all
-	     function find
-		 if found 
-		    delet from function
-		    request server to delete
-	     else
-			just display count of are not connected in the first place
-
-         clear selections
-		 
-       content connections	  
-	   add clear selections
-	   add clear selections to drop-down list change
-	   color browser
-	  
-	*/
 }
 
 function c2dConnection(){
@@ -791,15 +616,6 @@ function c2dConnection(){
 	
 	jQuery.get("?q=mdn/hover/" + connectionsWindow_displayedDiagrams[otherSide] + "/" + connectionsWindow_selections[otherSide][0] + "/" + textVal, null, c2dConnectionCallback);
 
-/*
-   check if val is empty
-   check only one selection on other side
-   
-   send otherdiagram, element, title of node to server
-    in callback get nid for node and display node entry
-	
-   clean text	
-*/
 
 }
 
@@ -897,13 +713,7 @@ function relatedVisualElementsInDisplayedDiagrams(diagramsArr, viewId, elementId
 	
 	return result;
 }
-/*
-svgElementHasConnections = false
-  exit mouseover
-
-svgElementHasConnections = true
-    
-*/   	   
+   
 
 function ColorWindow_svgElementMouseOver(theElement){
 	var IDs = getViewElementIDs(theElement.id);						  
@@ -964,18 +774,12 @@ function ConnectionsWindow_svgElementMouseOver(theElement){
 
 function svgElementMouseOver(theElement){
 
-   /* an old way of retrieving connections using ajax
-   Ajax way of retrieving connections 
-   jQuery.get("?q=mdn/hover/" + IDs[0] + "/" + IDs[1], null, hoverCallback);
-   */
-   //console.log(theElement.id);
     var IDs = getViewElementIDs(theElement.id);						  
 
     var relatedElements = jQuery.grep(visualElements, function(v,i) { // if element is in visualElements then this element has 
            return (v[0] === IDs[0] && v[1] === IDs[1]);              // we make it hoverable and clickable   
     });
    
-    //console.log(relatedElements.length);
 	if(relatedElements.length <= 0){
 		svgElementHasConnections = false;	
 	}
@@ -1076,37 +880,7 @@ function changeStyle(ParentSelector, elementId, newStyle, elementIndex){
 }
 
 
-function related(itemid){
-	/*
-	   send ajax request
-	*/
-}
 
-/*	Ajax way of retrieving connections		 
-function hoverCallback(response){
-   var result = jQuery.parseJSON(response);
-   if(result.length <= 1){ // no connections for this element. Note that the ajax request returns source element too
-	   return;
-   }
-   
-    var elem = result[result.length -1].viewId + '_' + result[result.length -1].elementId;
-   	CurrentHoverFill= jQuery("#" + elem).css("fill"); 
-	CurrentHoverStroke= jQuery("#" + elem).css("stroke"); 
-	CurrentHoverStrokeWidth= jQuery("#" + elem).css("stroke-width"); 
-	CurrentHoverOpacity=jQuery("#" + elem).css("opacity");  
-				
-	jQuery("#" + elem).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
-	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
-
-   for(i=0; i< (result.length-1); i++){
-      //console.log(result[0].viewId + ' ' + result[0].elementId);
-	  targetElem = result[i].viewId + '_' + result[i].elementId;
-	  jQuery("#" + targetElem).css("fill",rect.hoverfill).css("stroke",rect.hoverstroke)
-	                      .css("stroke-width",rect.hoverstroke_width).css("opacity","1");
-	}
-}
-*/
-	
 function svgElementMouseOut(theElement){
 	if(svgElementHasConnections === false)
 		return;
@@ -1160,12 +934,7 @@ function ColorWindow_svgElementMouseOut(theElement){
 
 
 function relatedContent(){
-	/*
-	  Get selections from visualElements
-	  send that 
-	  server will do union 
-	  and return results
-	*/
+
 	var	selectedElements = jQuery.grep(visualElements, function(v,i) {
         return (v[6] === 1);     
     });
@@ -1291,7 +1060,6 @@ jQuery(document).ready(function($) {
 		                   jQuery(elemId).css("opacity"),
 		                   0,0]; // [0] = viewid, [1] = elementId, [6] = status (0 unselected, 1 selected, 2 highlighted), 
 						         // [7] number of highlighting requests made by other elements
-       // console.log(visualElements[i][0] + " & " + visualElements[i][1] + " & " + visualElements[i][2] + " & " + visualElements[i][3]+ " & " + visualElements[i][4]+ " & " + visualElements[i][5] + " & " + visualElements[i][6]);	 
 	 }
 	 
 	 userDataArr = Drupal.settings.userData;
@@ -1318,14 +1086,10 @@ jQuery(document).ready(function($) {
 function SVGDisplayPreparation(containerClass, clickFunction, mouseoverFunction, mouseoutFunction){
 	
      var arrParents = document.getElementsByClassName(containerClass);
-	// var ff = sendMouseOverToParentDocument;
 	 for(var j = 0; j < arrParents.length; j++){
 	    var arr = arrParents[j].getElementsByTagName("path");	 
 	   
 	   	for (var i = 0; i < arr.length; i++) { 
-//	       arr[i].addEventListener("click", sendClickToParentDocument, false);
-	//       arr[i].addEventListener("mouseover", ff, false);
-	  //     arr[i].addEventListener("mouseout", sendMouseOutToParentDocument, false);
   	       arr[i].addEventListener("click", clickFunction, false);
 	       arr[i].addEventListener("mouseover", mouseoverFunction, false);
 	       arr[i].addEventListener("mouseout", mouseoutFunction, false);
