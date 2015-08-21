@@ -1,6 +1,7 @@
 /*
 Multiple Diagram Navigation Drupal Module
-
+https://github.com/benotman/mdn
+https://github.com/benotman/bartiksub
 */
 
 	var CurrentHoverFill; 
@@ -340,10 +341,10 @@ function fullScreen(){
 	});
 	
 	jQuery("#mdnContainer").modal({
-		maxWidth: Math.round(jQuery(window).width() * 7 /10),
-		maxHeight:  Math.round(jQuery(window).height() * 7 /10),
-		minWidth: Math.round(jQuery(window).width() * 7 /10),
-		minHeight:  Math.round(jQuery(window).height() * 7 /10),
+		maxWidth: Math.round(jQuery(window).width() * 10 /10),
+		maxHeight:  Math.round(jQuery(window).height() * 10 /10),
+		minWidth: Math.round(jQuery(window).width() * 10 /10),
+		minHeight:  Math.round(jQuery(window).height() * 10 /10),
 		
 		persist:true,
 		onClose: function (dialog){

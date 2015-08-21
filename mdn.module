@@ -2,20 +2,23 @@
 /**
  * @file
  * A block module that displays the multi diagram navigation widget.
- 
+
+https://github.com/benotman/mdn
+https://github.com/benotman/bartiksub
+
  */
 
 /*
 Default diagram colors
 */ 
-define("default_fill_hover_color", "rgb(235,131,22)");
-define("default_stroke_hover_color", "rgb(184,16,16)");
+define("default_fill_hover_color", "#f4f055");
+define("default_stroke_hover_color", "#ff8000");
 
-define("default_fill_select_color", "rgb(49,96,62)");
-define("default_stroke_select_color", "rgb(116,88,36)");
+define("default_fill_select_color", "#31603e");
+define("default_stroke_select_color", "#463515");
 
-define("default_fill_highlight_color", "rgb(113,207,51)");
-define("default_stroke_highlight_color", "rgb(113,207,51)");
+define("default_fill_highlight_color", "#71cf33");
+define("default_stroke_highlight_color", "#315b15");
 
 
 /**

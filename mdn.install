@@ -1,0 +1,94 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+
+function mdn_schema() {
+
+$schema['Connections'] = array(
+  'description' => 'TODO: please describe this table!',
+  'fields' => array(
+    'view1' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '10',
+      'not null' => TRUE,
+    ),
+    'element1' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '10',
+      'not null' => TRUE,
+    ),
+    'view2' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '10',
+      'not null' => TRUE,
+    ),
+    'element2' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '10',
+      'not null' => TRUE,
+    ),
+  ),
+  'primary key' => array('view1', 'element1', 'view2', 'element2'),
+);
+
+$schema['DiagramData'] = array(
+  'description' => 'TODO: please describe this table!',
+  'fields' => array(
+    'nid' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+    'svg_id' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'varchar',
+      'length' => '25',
+      'not null' => TRUE,
+    ),
+    'hover_fill_color' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '25',
+      'not null' => TRUE,
+    ),
+    'hover_stroke_color' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '25',
+      'not null' => TRUE,
+    ),
+    'select_fill_color' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '25',
+      'not null' => TRUE,
+    ),
+    'select_stroke_color' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '25',
+      'not null' => TRUE,
+    ),
+    'highlight_fill_color' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '25',
+      'not null' => TRUE,
+    ),
+    'highlight_stroke_color' => array(
+      'description' => 'TODO: please describe this field!',
+      'type' => 'char',
+      'length' => '25',
+      'not null' => TRUE,
+    ),
+  ),
+);
+
+return $schema;
+}
