@@ -53,4 +53,36 @@ End users can select which diagrams to display on the MDN block. Users have the 
 - FULL SCREEN:
 Use full screen to display the MDN block. This feature can be used in case the diagrams are large. 
 
+INSTALLATION
+
+To install the module, you need to create a specific content type before installation. The content type information is:
+
+Content Type: diagram
+
+field: SVG file 
+--> machine name : field_svg_file
+--> Field Type : File
+
+Field: Thumbnail
+--> machine name : field_thumbnail
+--> Field Type : image
+
+Field: Display On Load
+--> machine name : field_display_on_load
+--> Field Type : Boolean
+
+Field: Hide SVG Elements
+--> machine name : field_hide_svg_elements
+--> Field Type : Boolean
+
+Field: Thumnail Title
+--> machine name : field_thumnail_title
+--> Field Type : Text
+
+---- end of content type ----
+
+In the next release, the content type will be created programmatically on install
+
+
+
 
