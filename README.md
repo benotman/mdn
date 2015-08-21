@@ -81,7 +81,7 @@ Field: Thumnail Title
 
 ---- end of content type ----
 
-In the next release, the content type will be created programmatically on install
+Note that in the next release, the content type will be created programmatically on install.
 
 
 
