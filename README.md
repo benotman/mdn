@@ -59,25 +59,25 @@ To install the module, you need to create a specific content type before install
 
 Content Type: diagram
 
-field: SVG file 
---> machine name : field_svg_file
---> Field Type : File
+field: SVG file,  
+, machine name : field_svg_file
+, Field Type : File
 
-Field: Thumbnail
---> machine name : field_thumbnail
---> Field Type : image
+Field: Thumbnail, 
+, machine name : field_thumbnail
+, Field Type : image
 
-Field: Display On Load
---> machine name : field_display_on_load
---> Field Type : Boolean
+Field: Display On Load, 
+, machine name : field_display_on_load
+, Field Type : Boolean
 
-Field: Hide SVG Elements
---> machine name : field_hide_svg_elements
---> Field Type : Boolean
+Field: Hide SVG Elements, 
+, machine name : field_hide_svg_elements
+, Field Type : Boolean
 
-Field: Thumnail Title
---> machine name : field_thumnail_title
---> Field Type : Text
+Field: Thumnail Title, 
+, machine name : field_thumnail_title
+, Field Type : Text
 
 ---- end of content type ----
 
